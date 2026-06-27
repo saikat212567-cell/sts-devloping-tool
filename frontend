@@ -1,0 +1,1835 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Sankar Tea Shop — Financial Tracker</title>
+<meta name="description" content="Daily financial tracking system for Sankar Tea Shop — track cash, bank balances, expenses, and generate PDF reports.">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data: https://cdn.jsdelivr.net; connect-src https://sts-proxy.saikat212567.workers.dev https://sts-pdf-server-1012055640452.asia-south1.run.app;">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#1e1e1e">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=cached,settings&display=block" />
+<link rel="icon" type="image/svg+xml" href="https://cdn.jsdelivr.net/gh/saikat212567-cell/STS-Fonts@main/Sankar%20Tea%20Stall%20Fevicon.svg">
+
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js" crossorigin="anonymous" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" crossorigin="anonymous" defer></script>
+
+<script>
+    window.onerror = function(message, source, lineno, colno, error) {
+        console.error("App Error:", { message, source, lineno, colno, error });
+        alert("Something went wrong. Please refresh the page and try again.");
+        return true;
+    };
+    window.addEventListener('unhandledrejection', function(event) {
+        console.warn('Unhandled Promise rejection:', event.reason);
+        event.preventDefault();
+    });
+</script>
+
+<script>
+    const RENDER_PING_URL = "https://sts-pdf-server-1012055640452.asia-south1.run.app";
+    fetch(RENDER_PING_URL).catch(() => null);
+    fetch("https://sts-proxy.saikat212567.workers.dev/").catch(() => null);
+    
+    let keepAliveId = setInterval(() => {
+        fetch(RENDER_PING_URL).catch(() => null);
+    }, 240000);
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) { clearInterval(keepAliveId); }
+        else { keepAliveId = setInterval(() => { fetch(RENDER_PING_URL).catch(() => null); }, 240000); }
+    });
+</script>
+
+<style>
+  @font-face { font-family: 'Navi Headline'; src: url('https://cdn.jsdelivr.net/gh/saikat212567-cell/STS-Fonts@main/Navi_Headline_Regular%20(1).woff2') format('woff2'); font-weight: 200; font-style: normal; }
+  @font-face { font-family: 'Navi Body'; src: url('https://cdn.jsdelivr.net/gh/saikat212567-cell/STS-Fonts@main/Navi_Body_Regular.woff2') format('woff2'); font-weight: 400; font-style: normal; }
+  @font-face { font-family: 'Navi Body'; src: url('https://cdn.jsdelivr.net/gh/saikat212567-cell/STS-Fonts@main/Navi_Body_DemiBold.woff2') format('woff2'); font-weight: 600; font-style: normal; }
+  
+  .btn-top-settings { position: absolute; top: 20px; right: 20px; background: rgba(156, 39, 176, 0.1); border: 1px solid #9C27B0; color: #9C27B0; border-radius: 50%; width: 36px; height: 36px; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: all 0.3s ease; font-size: 18px; padding: 0; z-index: 10; }
+  .btn-top-settings .material-symbols-outlined { transition: transform 0.3s ease; }
+  .btn-top-settings:hover { background: #9C27B0; color: #fff; transform: rotate(90deg); }
+
+  :root { --theme-color: #FF9800; --theme-hover: #e68a00; }
+  * { box-sizing: border-box; }
+  body { font-family: 'Navi Body', sans-serif; background-color: #1e1e1e; color: #fff; display: flex; justify-content: center; align-items: flex-start; padding: 15px; margin: 0; min-height: 100vh; }
+  
+  .app-logo { display: block; margin: 0 auto 10px auto; max-width: 80px; height: auto; border-radius: 50%; border: 2px solid var(--theme-color); transition: border-color 0.4s ease; }
+  
+  .console-card { background: #1e1e1e; padding: 25px; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.4); width: 100%; max-width: 400px; border-top: 5px solid var(--theme-color); height: fit-content; transition: border-color 0.4s ease; position: relative; }
+  .slogan { text-align: center; color: rgb(250,250,250); font-size: 18px; font-weight: 600; margin-bottom: 8px; letter-spacing: 0.5px; text-transform: uppercase; }
+  h1 { font-family: 'Navi Headline', sans-serif; margin: 0 0 15px 0; font-size: 26px; font-weight: 600; color: var(--theme-color); text-align: center; letter-spacing: 1px; transition: color 0.4s ease; }
+  .date-group { text-align: center; margin-bottom: 20px; }
+
+  @keyframes fadeSlideUp { 0% { opacity: 0; transform: translateY(15px); } 100% { opacity: 1; transform: translateY(0); } }
+  @keyframes popIn { 0% { opacity: 0; transform: scale(0.95); } 100% { opacity: 1; transform: scale(1); } }
+  @keyframes pulseGlow { 0% { opacity: 0.7; box-shadow: 0 0 5px rgba(255, 152, 0, 0.2); } 50% { opacity: 1; box-shadow: 0 0 15px rgba(255, 152, 0, 0.5); } 100% { opacity: 0.7; box-shadow: 0 0 5px rgba(255, 152, 0, 0.2); } }
+  @keyframes spinIcon { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+  .loading-banner { animation: pulseGlow 1.5s infinite ease-in-out; }
+  .loading-banner .icon { display: inline-block; animation: spinIcon 1s linear infinite; }
+  .tab-content.active { display: block; animation: fadeSlideUp 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+  #view-input, #view-summary, #view-dash, #view-settings { animation: popIn 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+
+  .account-dropdown { width: 100%; padding: 14px; background: #2a2a2a; color: var(--theme-color); border: 1px solid #444; border-radius: 6px; font-family: 'Navi Body', sans-serif; font-weight: 600; font-size: 16px; text-align: center; margin-bottom: 20px; outline: none; cursor: pointer; transition: all 0.3s ease; }
+  .account-dropdown:focus { border-color: var(--theme-color); box-shadow: 0 0 10px rgba(255, 152, 0, 0.2); }
+  .tab-container { display: flex; gap: 10px; margin-bottom: 20px; }
+  .tab-btn { font-family: 'Navi Body', sans-serif; flex: 1; background-color: #2a2a2a; color: #888; padding: 12px 5px; border: 1px solid #444; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; }
+  .tab-btn.active { background-color: var(--theme-color); color: #fff; border-color: var(--theme-color); box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+  .tab-content { display: none; } 
+  .step-title { font-family: 'Navi Body', sans-serif; font-size: 14px; color: var(--theme-color); margin-top: 0; margin-bottom: 15px; text-align: center; text-transform: uppercase; border-bottom: 1px dashed #444; padding-bottom: 8px; }
+  .form-group { margin-bottom: 15px; } .form-group label { display: block; font-size: 12px; font-weight: 600; color: #fff; margin-bottom: 6px; text-transform: uppercase; }
+  
+  input[type="text"], input[type="date"], input[type="password"] { font-family: 'Navi Body', sans-serif; font-weight: 600; width: 100%; padding: 12px 6px; border: 1px solid #444; background: #2a2a2a; color: #fff; border-radius: 6px; font-size: 15px; transition: all 0.25s ease; color-scheme: dark; box-sizing: border-box; }
+  input[type="text"]:focus, input[type="password"]:focus { border-color: var(--theme-color); outline: none; transform: scale(1.02); box-shadow: 0 5px 15px rgba(0,0,0,0.3); background: #333; }
+  input:disabled { opacity: 0.4; cursor: not-allowed; border-color: #333 !important; background: #1a1a1a !important; color: #666 !important; transform: none !important; box-shadow: none !important;}
+  
+  .date-overlay-wrapper { position: relative; width: 100%; }
+  .date-display-input { width: 100%; padding: 12px 10px; border: 1px solid #444; background: #2a2a2a; color: #fff; border-radius: 6px; font-size: 16px; font-weight: 600; text-align: center; font-family: 'Navi Body', sans-serif; cursor: pointer; transition: border-color 0.3s ease; box-sizing: border-box; }
+  .date-display-input.locked { pointer-events: none; opacity: 0.5; } .date-hidden-input { position: absolute; left: 0; top: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+  
+  .grid-2-col { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; box-sizing: border-box; } .full-width { grid-column: span 2; }
+  .total-display { text-align: center; font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 15px; padding: 12px; background: #2a2a2a; border-radius: 6px; border-left: 4px solid #4CAF50; transition: all 0.3s ease;} .total-display span { color: #4CAF50; font-size: 18px; }
+  
+  button.submit-btn { font-family: 'Navi Body', sans-serif; width: 100%; color: white; padding: 15px; border: none; border-radius: 6px; font-size: 16px; font-weight: 600; cursor: pointer; transition: transform 0.1s ease, background 0.2s ease, border-color 0.2s ease; }
+  button.submit-btn:active { transform: scale(0.96); }
+  button.btn-next { background-color: var(--theme-color); } button.btn-next:hover { background-color: var(--theme-hover); }
+  button.btn-back { background-color: #555; } button.btn-back:hover { background-color: #444; }
+  button.btn-summary-nav { background-color: transparent; border: 2px solid var(--theme-color); color: var(--theme-color); margin-top: 15px; } button.btn-summary-nav:hover { background-color: rgba(255, 152, 0, 0.1); }
+  button.btn-dash-nav { background-color: transparent; border: 2px solid #4CAF50; color: #4CAF50; margin-top: 10px; } button.btn-dash-nav:hover { background-color: rgba(76, 175, 80, 0.1); }
+  button.btn-final { background-color: #E53935; margin-top: 15px;} button.btn-final:hover { background-color: #c62828; }
+  button.submit-btn:disabled { background-color: #333 !important; cursor: not-allowed; border-color: #333; color: #666; transform: none;}
+
+  .summary-section-title { font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 1.5px; margin-top: 20px; margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 5px; font-weight: 600; }
+  .summary-row { display: flex; justify-content: space-between; align-items: center; background: #222; padding: 14px 15px; margin-bottom: 8px; border-radius: 8px; border-left: 4px solid #444; cursor: pointer; transition: all 0.2s ease; }
+  .summary-row.cash { border-left-color: #FF9800; } .summary-row.bank { border-left-color: #2196F3; }
+  .summary-row:hover { background: #2a2a2a; transform: translateX(6px); box-shadow: -2px 4px 8px rgba(0,0,0,0.3); } .summary-row:active { transform: scale(0.98); }
+  .summary-row .label { font-size: 13px; font-weight: 600; color: #ddd; } .summary-row .value { font-size: 15px; font-weight: 600; color: #fff; display: flex; align-items: center; gap: 10px; }
+  .acct-format { display: flex; width: 140px; align-items: center; } .acct-format .currency-sym { width: 15px; text-align: left; color: #888; font-weight: normal; } .acct-format .denom-val { width: 35px; text-align: right; }
+  .acct-format .x-mark { width: 25px; text-align: center; color: #888; font-size: 12px; } .acct-format .qty-val { width: 35px; text-align: left; font-size: 14px; font-weight: 600; color: #fff; }
+  .row-total { font-size: 14px; font-weight: 600; margin-right: 2px; } .edit-icon { color: #4CAF50; font-size: 14px; opacity: 0.7; transition: transform 0.3s; }
+  .summary-row:hover .edit-icon { transform: scale(1.2); } .no-data { text-align: center; color: #777; font-style: italic; font-size: 13px; padding: 20px; }
+
+  details.dash-dropdown { background: #2a2a2a; border-radius: 8px; margin-bottom: 12px; border: 1px solid #333; transition: all 0.3s ease; }
+  details.dash-dropdown summary { padding: 15px; font-weight: 600; color: #fff; cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; font-size: 14px; }
+  details.dash-dropdown summary::-webkit-details-marker { display: none; } details.dash-dropdown summary:after { content: '▼'; font-size: 12px; color: #888; transition: transform 0.3s ease; }
+  details.dash-dropdown[open] summary:after { transform: rotate(180deg); } details.dash-dropdown[open] summary { border-bottom: 1px solid #444; } .dd-content { padding: 15px; animation: fadeSlideUp 0.3s ease forwards; }
+
+  details.inner-dropdown { background: #1a1a1a; border-color: #333; margin-top: 15px; border-radius: 6px; } details.inner-dropdown summary { padding: 12px; font-size: 13px; color: #FF9800; } details.inner-dropdown[open] summary { border-bottom: 1px dashed #444; }
+
+  .dash-card { background: #1e1e1e; border-radius: 8px; padding: 12px 10px; margin-bottom: 12px; text-align: center; border-left: 3px solid #FF9800; transition: transform 0.2s;} .dash-card:hover { transform: translateY(-3px); box-shadow: 0 4px 10px rgba(0,0,0,0.3); } .dash-card.bank { border-left-color: #2196F3; } .dash-card h4 { margin: 0 0 5px 0; font-size: 11px; color: #aaa; letter-spacing: 1px; } .dash-main-val { font-size: 18px; font-weight: 600; color: #fff; margin-bottom: 0px; }
+  .exp-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #444; font-size: 13px; align-items: center;} .exp-row:last-child { border-bottom: none; }
+  .exp-subtotal { background: #222; padding: 10px; border-radius: 6px; font-weight: 600; color: #FF9800; display: flex; justify-content: space-between; margin-top: 10px; margin-bottom: 15px; font-size: 14px;} .exp-subtotal.bank { color: #2196F3; }
+  .exp-grand { background: rgba(244, 67, 54, 0.1); border: 1px solid #F44336; color: #F44336; padding: 12px; border-radius: 6px; font-weight: 600; display: flex; justify-content: space-between; font-size: 15px;}
+  .stat-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 10px; } .stat-box { background: #1e1e1e; padding: 10px; border-radius: 6px; text-align: center; border: 1px solid #333; transition: background 0.3s;} .stat-box:hover { background: #2a2a2a; } .stat-box span { display: block; font-size: 9px; color: #888; margin-bottom: 5px; letter-spacing: 0.5px;} .stat-box strong { font-size: 13px; color: #fff; }
+
+  .auto-save-indicator { position: fixed; bottom: 20px; right: 20px; background: rgba(76, 175, 80, 0.95); color: white; padding: 10px 18px; border-radius: 25px; font-size: 13px; font-weight: 600; opacity: 0; transition: opacity 0.3s ease, transform 0.3s ease; transform: translateY(15px); pointer-events: none; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.3);} .auto-save-indicator.show { opacity: 1; transform: translateY(0); }
+
+  .settings-section { background: #1e1e1e; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #333; box-sizing: border-box; width: 100%; overflow: hidden; }
+  .settings-section h4 { color: #9C27B0; margin-top: 0; font-size: 14px; text-transform: uppercase; border-bottom: 1px dashed #444; padding-bottom: 5px; }
+  
+  .search-result-item { background: #2a2a2a; border-left: 3px solid #FF9800; padding: 10px; margin-bottom: 8px; border-radius: 4px; font-size: 13px; display: flex; justify-content: space-between; cursor: pointer; transition: all 0.2s ease; }
+  .search-result-item:hover { background: #333; transform: translateX(5px); box-shadow: -2px 4px 8px rgba(0,0,0,0.3); border-color: #4CAF50; }
+  .search-result-item.BANK { border-left-color: #2196F3; }
+  .search-result-details { color: #aaa; font-size: 11px; }
+
+  /* PIN Modal Styles */
+  .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; display: none; justify-content: center; align-items: center; padding: 15px; }
+  .modal-content { background: #1e1e1e; padding: 25px; border-radius: 12px; border-top: 5px solid #FF9800; text-align: center; width: 100%; max-width: 320px; box-shadow: 0 5px 20px rgba(0,0,0,0.5); animation: popIn 0.3s ease;}
+  .modal-title { font-family: 'Navi Headline', sans-serif; color: #FF9800; margin: 0 0 10px 0; font-size: 18px; text-transform: uppercase; }
+  .modal-desc { color: #aaa; font-size: 13px; margin-bottom: 20px; }
+  .pin-input { font-family: 'Navi Body', sans-serif; font-weight: 600; width: 100%; padding: 15px; text-align: center; font-size: 24px; letter-spacing: 5px; border: 2px solid #444; border-radius: 8px; background: #141414; color: #fff; margin-bottom: 20px; }
+  .pin-input:focus { border-color: #FF9800; outline: none; }
+  .modal-btn-row { display: flex; gap: 10px; }
+  .modal-btn { flex: 1; padding: 12px; font-weight: 600; border-radius: 6px; border: none; cursor: pointer; font-size: 14px; font-family: 'Navi Body', sans-serif; transition: transform 0.1s;}
+  .modal-btn:active { transform: scale(0.95); }
+  .btn-cancel { background: #444; color: #fff; } .btn-unlock { background: #FF9800; color: #fff; }
+  
+  .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-bottom: 10px; }
+  .cal-day { background: #2a2a2a; border: 1px solid #444; border-radius: 4px; padding: 8px 0; text-align: center; cursor: pointer; font-size: 13px; transition: all 0.2s; }
+  .cal-day:hover { border-color: #FF9800; }
+  .cal-day.selected { background: #FF9800; color: #fff; border-color: #FF9800; font-weight: bold; transform: scale(1.1); box-shadow: 0 2px 5px rgba(255,152,0,0.4); }
+</style>
+</head>
+<body>
+
+<div id="pinModal" class="modal-overlay">
+  <div class="modal-content">
+    <h3 class="modal-title">🔒 Restricted Action</h3>
+    <p class="modal-desc" id="pinDesc">Enter PIN to edit historical data.</p>
+    <input type="password" id="pinInput" class="pin-input" placeholder="••••••" inputmode="numeric" maxlength="6">
+    <div class="modal-btn-row">
+      <button class="modal-btn btn-cancel" onclick="cancelPin()">CANCEL</button>
+      <button class="modal-btn btn-unlock" onclick="verifyPin()">UNLOCK</button>
+    </div>
+  </div>
+</div>
+
+<div class="console-card">
+ <button type="button" class="btn-top-settings" onclick="triggerSettingsPin()" title="System Settings">
+  <span class="material-symbols-outlined" style="font-size: 20px;">settings</span>
+</button>
+
+  <div class="slogan">Har Har Mahadev</div>
+  <h1>SANKAR TEA SHOP</h1>
+  
+  <div id="view-input">
+    <div id="inputLoading" class="loading-banner" style="text-align:center; padding:10px; color:white; font-size:12px; border: 1px dashed #FF9800; border-radius:8px; margin-bottom: 15px; display:none;">
+      <span class="material-symbols-outlined icon" style="vertical-align: middle; font-size: 16px; margin-right: 4px;">cached</span> Fetching Past Data... Please Wait
+    </div>
+
+    <div class="date-group">
+      <div class="date-overlay-wrapper" style="width: 140px; margin: 0 auto;">
+        <input type="text" id="disp-dateField" class="date-display-input" readonly>
+        <input type="date" id="dateField" class="date-hidden-input" onchange="onUserDateChange(this)">
+      </div>
+    </div>
+    
+    <div id="topControls">
+      <select id="accountType" class="account-dropdown" onchange="changeTheme()">
+        <option value="HAND">CASH IN HAND</option>
+        <option value="BANK">CASH AT BANK</option>
+      </select>
+      <div class="tab-container">
+        <button type="button" class="tab-btn active" id="btn-in" onclick="switchTab('in')">IN</button>
+        <button type="button" class="tab-btn" id="btn-out" onclick="switchTab('out')">OUT</button>
+      </div>
+    </div>
+    
+    <div id="tab-in" class="tab-content active">
+      <form id="cashInForm" autocomplete="off" onsubmit="event.preventDefault();">
+        <div id="step-notes">
+          <h3 class="step-title">OPERATING CASH : NOTES</h3>
+          <div class="grid-2-col">
+            <div class="form-group"><label>₹ 10 Notes (x)</label><input type="text" id="note10" class="calc-input denom" placeholder="0" inputmode="decimal"></div>
+            <div class="form-group"><label>₹ 20 Notes (x)</label><input type="text" id="note20" class="calc-input denom" placeholder="0" inputmode="decimal"></div>
+            <div class="form-group"><label>₹ 50 Notes (x)</label><input type="text" id="note50" class="calc-input denom" placeholder="0" inputmode="decimal"></div>
+            <div class="form-group"><label>₹ 100 Notes (x)</label><input type="text" id="note100" class="calc-input denom" placeholder="0" inputmode="decimal"></div>
+            <div class="form-group"><label>₹ 200 Notes (x)</label><input type="text" id="note200" class="calc-input denom" placeholder="0" inputmode="decimal"></div>
+            <div class="form-group"><label>₹ 500 Notes (x)</label><input type="text" id="note500" class="calc-input denom" placeholder="0" inputmode="decimal"></div>
+          </div>
+          <button type="button" class="submit-btn btn-next" onclick="goToCoins()">NEXT : ENTER COINS ➔</button>
+        </div>
+
+        <div id="step-coins" style="display: none;">
+          <h3 class="step-title">OPERATING CASH : COINS</h3>
+          <div class="grid-2-col">
+            <div class="form-group"><label>₹ 1 Coins (x)</label><input type="text" id="coin1" class="calc-input denom" placeholder="0" inputmode="decimal"></div>
+            <div class="form-group"><label>₹ 2 Coins (x)</label><input type="text" id="coin2" class="calc-input denom" placeholder="0" inputmode="decimal"></div>
+            <div class="form-group"><label>₹ 5 Coins (x)</label><input type="text" id="coin5" class="calc-input denom" placeholder="0" inputmode="decimal"></div>
+            <div class="form-group"><label>₹ 10 Coins (x)</label><input type="text" id="coin10" class="calc-input denom" placeholder="0" inputmode="decimal"></div>
+            <div class="form-group full-width"><label>₹ 20 Coins (x)</label><input type="text" id="coin20" class="calc-input denom" placeholder="0" inputmode="decimal"></div>
+          </div>
+          <div class="form-group full-width" style="margin-top: 10px; border-top: 1px dashed #444; padding-top: 15px;">
+            <label style="color: #FF9800; font-size: 13px;">CLOSING FLOAT (₹)</label>
+            <input type="text" id="reserveIn" class="calc-input denom" placeholder="0.00" inputmode="decimal">
+          </div>
+          <div class="form-group full-width">
+            <label style="color: #FF9800; font-size: 13px;">OTHER INCOME (₹)</label>
+            <input type="text" id="c_otherIncome" class="calc-input denom" placeholder="0.00" inputmode="decimal">
+          </div>
+          <div class="total-display">CLOSING BALANCE: <span id="calcTotal">₹0.00</span></div>
+          <button type="button" class="submit-btn btn-back" onclick="goToNotes()">⬅ BACK TO NOTES</button>
+        </div>
+      </form>
+
+      <form id="bankInForm" autocomplete="off" style="display: none;" onsubmit="event.preventDefault();">
+        <h3 class="step-title" style="color: #2196F3;">BANK BALANCE</h3>
+        <div class="form-group full-width" style="margin-bottom: 25px;">
+          <label style="color: #2196F3; font-size: 13px;">ENTER CLOSING BANK BALANCE (₹)</label>
+          <input type="text" id="bankInAmount" class="calc-input" placeholder="0.00" inputmode="decimal">
+        </div>
+        <div class="form-group full-width" style="border-top: 1px dashed #444; padding-top: 15px;">
+          <label style="color: #4CAF50;">CAPITAL RETURNED (₹)</label>
+          <input type="text" id="b_capitalRet" class="calc-input" placeholder="0.00" inputmode="decimal">
+        </div>
+        <div class="form-group full-width">
+          <label>OTHER INCOME (₹)</label>
+          <input type="text" id="b_otherIncome" class="calc-input" placeholder="0.00" inputmode="decimal">
+        </div>
+      </form>
+    </div>
+    
+    <div id="tab-out" class="tab-content">
+      <form id="cashOutForm" autocomplete="off" onsubmit="event.preventDefault();">
+        <h3 class="step-title">CASH EXPENSES</h3>
+        <div class="grid-2-col">
+          <div class="form-group"><label>FAMILY</label><input type="text" id="c_outFamily" class="calc-input" placeholder="0.00" inputmode="decimal"></div>
+          <div class="form-group"><label>SUGAR</label><input type="text" id="c_outSugar" class="calc-input" placeholder="0.00" inputmode="decimal"></div>
+          <div class="form-group"><label>SHOP GOODS</label><input type="text" id="c_outShop" class="calc-input" placeholder="0.00" inputmode="decimal"></div>
+          <div class="form-group"><label>TEA</label><input type="text" id="c_outTea" class="calc-input" placeholder="0.00" inputmode="decimal"></div>
+          <div class="form-group"><label>MILK</label><input type="text" id="c_outMilk" class="calc-input" placeholder="0.00" inputmode="decimal"></div>
+          <div class="form-group"><label>OTHER</label><input type="text" id="c_outOther" class="calc-input" placeholder="0.00" inputmode="decimal"></div>
+        </div>
+        <h3 class="step-title" style="margin-top: 20px;">TRANSFERS</h3>
+        <div class="grid-2-col">
+          <div class="form-group full-width"><label>BANK TRANSFER</label><input type="text" id="c_outBank" class="calc-input" placeholder="0.00" inputmode="decimal"></div>
+        </div>
+      </form>
+
+      <form id="bankOutForm" autocomplete="off" style="display: none;" onsubmit="event.preventDefault();">
+        <h3 class="step-title" style="color: #2196F3;">BANK EXPENSES</h3>
+        <div class="grid-2-col">
+          <div class="form-group"><label>FAMILY</label><input type="text" id="b_outFamily" class="calc-input" placeholder="0.00" inputmode="decimal"></div>
+          <div class="form-group"><label>SUGAR</label><input type="text" id="b_outSugar" class="calc-input" placeholder="0.00" inputmode="decimal"></div>
+          <div class="form-group"><label>SHOP GOODS</label><input type="text" id="b_outShop" class="calc-input" placeholder="0.00" inputmode="decimal"></div>
+          <div class="form-group"><label>TEA</label><input type="text" id="b_outTea" class="calc-input" placeholder="0.00" inputmode="decimal"></div>
+          <div class="form-group"><label>MILK</label><input type="text" id="b_outMilk" class="calc-input" placeholder="0.00" inputmode="decimal"></div>
+          <div class="form-group"><label>OTHER</label><input type="text" id="b_outOther" class="calc-input" placeholder="0.00" inputmode="decimal"></div>
+        </div>
+        <div style="background: rgba(33, 150, 243, 0.1); padding: 15px; border-radius: 8px; border: 1px dashed #2196F3; margin-top: 25px; margin-bottom: 15px;">
+          <h3 class="step-title" style="color: #2196F3; border-bottom: none; margin-bottom: 10px;">TRANSFERS & INVESTMENTS</h3>
+          <div class="form-group full-width">
+            <label style="color: #2196F3;">BANK TO CASH TRANSFER</label>
+            <input type="text" id="b_outBank" class="calc-input" placeholder="0.00" inputmode="decimal">
+          </div>
+          <div class="form-group full-width" style="margin-bottom: 0;">
+            <label style="color: #4CAF50;">CAPITAL INVESTMENT (₹)</label>
+            <input type="text" id="b_capitalInv" class="calc-input" placeholder="0.00" inputmode="decimal">
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <button type="button" id="btn-go-summary" class="submit-btn btn-summary-nav" onclick="toggleViews('summary')">📋 REVIEW SUMMARY</button>
+    <button type="button" id="btn-dashboard" class="submit-btn btn-dash-nav" onclick="openDashboard()">📊 OPEN DASHBOARD</button>
+  </div>
+
+  <div id="view-summary" style="display:none;">
+    <button type="button" class="submit-btn btn-back" onclick="toggleViews('input')" style="margin-bottom: 15px; font-size: 14px; padding: 10px;">⬅ BACK TO EDITING</button>
+    <h3 class="step-title" style="color: #fff; border-bottom: none; margin-bottom: 0;">REVIEW YOUR ENTRIES</h3>
+    <div id="summaryContent"></div>
+    <button type="button" id="finalSubmitBtn" class="submit-btn btn-final"></button>
+  </div>
+  
+  <div id="view-dash" style="display:none;">
+    <button type="button" class="submit-btn btn-back" onclick="toggleViews('input')" style="margin-bottom: 15px; font-size: 14px; padding: 10px;">⬅ BACK TO EDITING</button>
+    <h3 class="step-title" style="color: #4CAF50; border-bottom: none;">LIVE DASHBOARD</h3>
+    
+    <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+      <button type="button" id="btn-download-stmt" class="submit-btn" style="background: #555; padding: 8px; font-size: 12px;" onclick="try { requestPDFDownload(); } catch(e) { alert('UI Error: ' + e.message); }">🖨️ SAVE PDF / PRINT</button>
+      <button type="button" id="btn-email-stmt" class="submit-btn" style="background: #2196F3; padding: 8px; font-size: 12px;" onclick="try { requestEmailStatement(); } catch(e) { alert('UI Error: ' + e.message); }">📧 EMAIL PDF</button>
+    </div>
+    
+    <div id="dashLoading" class="loading-banner" style="text-align:center; padding:15px; color:#aaa; font-size:13px; border: 1px dashed #555; border-radius:8px; margin-bottom: 15px; display:none;">
+      <span class="material-symbols-outlined icon" style="vertical-align: middle; font-size: 18px; margin-right: 4px;">cached</span> Fetching Live Data...
+    </div>
+
+    <div id="dashContent" style="display:none;">
+      <select id="dashSectionDropdown" class="account-dropdown" style="border-color:#4CAF50; color:#4CAF50; margin-bottom: 15px;" onchange="changeDashSection()">
+        <option value="SALES">📈 PROFIT AND LOSS STATEMENT</option>
+        <option value="STATS">📊 STATISTICAL DATA</option>
+        <option value="BALANCES">🏦 CASH AND BANK BOOK</option>
+      </select>
+
+      <div id="dash-sec-sales">
+        <select id="plModeDropdown" class="account-dropdown" style="margin-bottom: 15px; border-color: #FF9800; color: #FF9800; padding: 10px;" onchange="setPlMode(this.value)">
+          <option value="TODAY">📅 TODAY</option>
+          <option value="MONTH">📆 THIS MONTH</option>
+          <option value="CUSTOM">⚙️ CUSTOM RANGE</option>
+        </select>
+
+        <div id="pl-ui-today" class="form-group">
+          <div class="date-overlay-wrapper">
+            <input type="text" id="disp-plDate" class="date-display-input" readonly>
+            <input type="date" id="plDate" class="date-hidden-input" onchange="updateDispDate(this); renderSalesDashboard()">
+          </div>
+        </div>
+        
+        <div id="pl-ui-custom" class="grid-2-col" style="display:none; margin-bottom:15px;">
+          <div class="form-group" style="margin:0;"><div class="date-overlay-wrapper"><input type="text" id="disp-plStart" class="date-display-input" readonly><input type="date" id="plStart" class="date-hidden-input" onchange="updateDispDate(this); renderSalesDashboard()"></div></div>
+          <div class="form-group" style="margin:0;"><div class="date-overlay-wrapper"><input type="text" id="disp-plEnd" class="date-display-input" readonly><input type="date" id="plEnd" class="date-hidden-input" onchange="updateDispDate(this); renderSalesDashboard()"></div></div>
+        </div>
+        
+        <div class="grid-2-col" style="margin-bottom:15px;">
+          <div class="dash-card" style="margin-bottom:0; border-left-color: #FF9800;"><h4>CASH SALE</h4><div class="dash-main-val" id="d-csale" style="font-size:16px;">₹0.00</div></div>
+          <div class="dash-card" style="margin-bottom:0; border-left-color: #FF9800;"><h4>CASH PROFIT</h4><div class="dash-main-val" id="d-cprofit" style="font-size:16px;">₹0.00</div></div>
+          <div class="dash-card" style="margin-bottom:0; border-left-color: #4CAF50;"><h4>TOTAL SALE</h4><div class="dash-main-val" id="d-tsale" style="font-size:16px;">₹0.00</div></div>
+          <div class="dash-card" style="margin-bottom:0; border-left-color: #2196F3;"><h4>NET PROFIT</h4><div class="dash-main-val" id="d-nprofit" style="font-size:16px;">₹0.00</div></div>
+        </div>
+
+        <details class="dash-dropdown inner-dropdown" open>
+          <summary>🧾 SHOW DETAILED EXPENSES</summary>
+          <div class="dd-content" id="d-expenses-container"></div>
+        </details>
+      </div>
+
+      <div id="dash-sec-stats" style="display:none;">
+        <div class="grid-2-col" style="margin-bottom:15px;">
+          <div class="form-group" style="margin:0;"><label>Start Date</label><div class="date-overlay-wrapper"><input type="text" id="disp-dashStartDate" class="date-display-input" readonly><input type="date" id="dashStartDate" class="date-hidden-input" onchange="updateDispDate(this); renderStatsDashboard()"></div></div>
+          <div class="form-group" style="margin:0;"><label>End Date</label><div class="date-overlay-wrapper"><input type="text" id="disp-dashEndDate" class="date-display-input" readonly><input type="date" id="dashEndDate" class="date-hidden-input" onchange="updateDispDate(this); renderStatsDashboard()"></div></div>
+        </div>
+        
+        <h4 style="color:#FF9800; font-size:11px; margin: 15px 0 5px 0;">CASH SALE</h4>
+        <div class="stat-grid"><div class="stat-box"><span>AVG</span><strong id="st-cs-avg">₹0.00</strong></div><div class="stat-box"><span>MAX</span><strong id="st-cs-max" style="color:#4CAF50;">₹0.00</strong></div><div class="stat-box"><span>MIN</span><strong id="st-cs-min" style="color:#F44336;">₹0.00</strong></div></div>
+        <h4 style="color:#FF9800; font-size:11px; margin: 15px 0 5px 0;">CASH PROFIT</h4>
+        <div class="stat-grid"><div class="stat-box"><span>AVG</span><strong id="st-cp-avg">₹0.00</strong></div><div class="stat-box"><span>MAX</span><strong id="st-cp-max" style="color:#4CAF50;">₹0.00</strong></div><div class="stat-box"><span>MIN</span><strong id="st-cp-min" style="color:#F44336;">₹0.00</strong></div></div>
+        <h4 style="color:#fff; font-size:11px; margin: 15px 0 5px 0;">TOTAL SALE</h4>
+        <div class="stat-grid"><div class="stat-box"><span>AVG</span><strong id="st-ts-avg">₹0.00</strong></div><div class="stat-box"><span>MAX</span><strong id="st-ts-max" style="color:#4CAF50;">₹0.00</strong></div><div class="stat-box"><span>MIN</span><strong id="st-ts-min" style="color:#F44336;">₹0.00</strong></div></div>
+        <h4 style="color:#2196F3; font-size:11px; margin: 15px 0 5px 0;">NET PROFIT</h4>
+        <div class="stat-grid"><div class="stat-box"><span>AVG</span><strong id="st-np-avg">₹0.00</strong></div><div class="stat-box"><span>MAX</span><strong id="st-np-max" style="color:#4CAF50;">₹0.00</strong></div><div class="stat-box"><span>MIN</span><strong id="st-np-min" style="color:#F44336;">₹0.00</strong></div></div>
+      </div>
+
+      <div id="dash-sec-balances" style="display:none;">
+        <div class="form-group"><label>Select Date</label><div class="date-overlay-wrapper"><input type="text" id="disp-dashBalancesDate" class="date-display-input" readonly><input type="date" id="dashBalancesDate" class="date-hidden-input" onchange="updateDispDate(this); renderBalancesDashboard()"></div></div>
+        <div style="background: #2a2a2a; border-radius: 8px; padding: 15px;">
+          <h4 style="color:#FF9800; font-size:12px; margin: 0 0 10px 0;">CASH ACCOUNT</h4>
+          <div class="exp-row"><span>Opening Cash (incl. Float):</span><strong id="d-op-cash">₹0.00</strong></div>
+          <div class="exp-row"><span>Closing Cash (incl. Float):</span><strong id="d-cl-cash">Pending...</strong></div>
+          <div class="exp-row"><span>Float/Reserve (Current):</span><strong id="d-reserve">₹0.00</strong></div>
+          <div class="exp-row" id="row-cash-other-inc"><span>Other Income:</span><strong id="d-cash-other-inc" style="color:#4CAF50;">₹0.00</strong></div>
+          <div class="exp-row" id="d-cash-diff-box" style="border-bottom:none; margin-top:8px; background:rgba(255,152,0,0.1); padding:10px; border-radius:6px; display:none;"><span id="d-cash-diff-label" style="font-weight:600; color:#fff;">Change in Cash:</span><strong id="d-cash-diff-val">₹0.00</strong></div>
+          
+          <h4 style="color:#2196F3; font-size:12px; margin: 25px 0 10px 0;">BANK ACCOUNT</h4>
+          <div class="exp-row"><span>Opening Bank:</span><strong id="d-op-bank">₹0.00</strong></div>
+          <div class="exp-row"><span>Closing Bank:</span><strong id="d-cl-bank">Pending...</strong></div>
+          <div class="exp-row" id="row-bank-other-inc" style="border-bottom:none;"><span>Other Income:</span><strong id="d-bank-other-inc" style="color:#4CAF50;">₹0.00</strong></div>
+          <div class="exp-row" id="d-bank-diff-box" style="border-bottom:none; margin-top:8px; background:rgba(33,150,243,0.1); padding:10px; border-radius:6px; display:none;"><span id="d-bank-diff-label" style="font-weight:600; color:#fff;">Change in Bank:</span><strong id="d-bank-diff-val">₹0.00</strong></div>
+
+          <h4 style="color:#aaa; font-size:12px; margin: 25px 0 10px 0;">INTERNAL TRANSFERS</h4>
+          <div class="exp-row"><span>Bank to Cash:</span><strong id="d-tr-b2c" style="color:#FF9800;">₹0.00</strong></div>
+          <div class="exp-row" style="border-bottom:none;"><span>Cash to Bank:</span><strong id="d-tr-c2b" style="color:#2196F3;">₹0.00</strong></div>
+
+          <details class="dash-dropdown inner-dropdown" style="margin-top: 15px; background: #1e1e1e; border: 1px solid #333;">
+            <summary style="color: #aaa; font-size: 12px; letter-spacing: 0.5px;">💼 CAPITAL TRACKER (TAP TO EXPAND)</summary>
+            <div class="dd-content" style="padding: 10px 15px;">
+                <div style="font-size: 10px; color: #888; text-align: center; margin-bottom: 12px; letter-spacing: 1px;">DATA AS OF SELECTED DATE</div>
+                <div class="exp-row"><span>Today's Investment:</span><strong id="d-cap-inv" style="color:#F44336;">₹0.00</strong></div>
+                <div class="exp-row"><span>Today's Return:</span><strong id="d-cap-ret" style="color:#4CAF50;">₹0.00</strong></div>
+                <div class="exp-row" style="background: rgba(244,67,54,0.1); padding: 8px; border-radius: 4px; margin-top: 15px;"><span style="color:#ddd;">Cumulative Investment:</span><strong id="d-cum-inv" style="color:#F44336;">₹0.00</strong></div>
+                <div class="exp-row" style="background: rgba(76,175,80,0.1); padding: 8px; border-radius: 4px;"><span style="color:#ddd;">Cumulative Return:</span><strong id="d-cum-ret" style="color:#4CAF50;">₹0.00</strong></div>
+                <div class="exp-row" style="background: #222; padding: 12px; border-radius: 6px; margin-top: 10px; border: 1px solid #444; border-bottom: none;"><span style="color:#aaa; font-weight:600; font-size: 12px;">NET ACTIVE CAPITAL:</span><strong id="d-net-inv" style="color:#FF9800; font-size: 16px;">₹0.00</strong></div>
+            </div>
+          </details>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="view-settings" style="display:none;">
+    <button type="button" class="submit-btn btn-back" onclick="toggleViews('input')" style="margin-bottom: 15px; font-size: 14px; padding: 10px;">⬅ BACK TO MENU</button>
+    <h3 class="step-title" style="color: #9C27B0; border-bottom: none;">SYSTEM SETTINGS</h3>
+
+    <div class="settings-section">
+      <h4>🔒 Change Access PIN</h4>
+      <div class="form-group"><input type="password" id="newPinInput" placeholder="Enter New PIN" inputmode="numeric" maxlength="6"></div>
+      <div class="form-group"><input type="password" id="confirmNewPinInput" placeholder="Confirm New PIN" inputmode="numeric" maxlength="6"></div>
+      <button type="button" class="submit-btn" style="background: #9C27B0; padding: 10px;" onclick="saveNewPin()">UPDATE PIN</button>
+    </div>
+
+    <div class="settings-section">
+      <h4>📧 Scheduled Statements</h4>
+      
+      <div id="emailDisplayView" style="display:none; background: #2a2a2a; padding: 15px; border-radius: 8px; border-left: 4px solid #4CAF50; margin-bottom: 15px;">
+        <p style="margin: 0 0 5px 0; color: #888; font-size: 11px;">ACTIVE RECIPIENTS:</p>
+        <strong id="displayEmailList" style="color: #fff; font-size: 14px; display: block; margin-bottom: 15px; word-break: break-all;"></strong>
+        <p style="margin: 0 0 15px 0; color: #888; font-size: 11px;">FREQUENCY: <strong id="displayEmailFreq" style="color: #4CAF50;"></strong></p>
+        <button type="button" class="submit-btn" style="background: #2a2a2a; border: 1px solid #4CAF50; color: #4CAF50; padding: 10px; font-size: 12px;" onclick="showEmailEditView()">EDIT CONFIGURATION</button>
+      </div>
+
+      <div id="emailEditView">
+        <div class="form-group">
+          <label>Recipient Email</label>
+          <div style="display:flex; gap:10px;">
+            <input type="text" id="schEmail" placeholder="email1@gmail.com, email2@gmail.com">
+            <button type="button" id="btn-req-otp" class="submit-btn" style="width: auto; padding: 10px 15px; background: #2196F3;" onclick="requestEmailOtp()">SEND OTP</button>
+          </div>
+        </div>
+        
+        <div class="form-group" id="otpGroup" style="display:none; background: rgba(33, 150, 243, 0.1); padding: 10px; border-radius: 6px; border: 1px dashed #2196F3;">
+          <label style="color: #2196F3;">Enter 6-Digit OTP</label>
+          <div style="display:flex; gap:10px;">
+            <input type="text" id="schOtp" placeholder="123456" maxlength="6" inputmode="numeric" style="text-align: center; letter-spacing: 3px;">
+            <button type="button" id="btn-verify-otp" class="submit-btn" style="width: auto; padding: 10px 15px; background: #FF9800;" onclick="verifyOtpAndSave()">VERIFY & SAVE</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Frequency</label>
+          <select id="schFrequency" class="account-dropdown" style="margin-bottom: 10px; padding: 10px; border-color: #4CAF50; color: #4CAF50;" onchange="updateFreqUI()">
+            <option value="DAILY">Daily</option>
+            <option value="WEEKLY">Weekly</option>
+            <option value="MONTHLY">Monthly</option>
+          </select>
+        </div>
+        
+        <div class="form-group" id="weeklyInputGroup" style="display:none;">
+          <label>Select Day of Week</label>
+          <select id="schDayOfWeek" class="account-dropdown" style="padding: 10px; margin-bottom: 10px;">
+            <option value="1">Monday</option><option value="2">Tuesday</option><option value="3">Wednesday</option><option value="4">Thursday</option><option value="5">Friday</option><option value="6">Saturday</option><option value="0">Sunday</option>
+          </select>
+        </div>
+        
+        <div class="form-group" id="monthlyInputGroup" style="display:none;">
+          <label>Select Date of Month</label>
+          <div class="calendar-grid" id="schDateGrid"></div>
+          <input type="hidden" id="schDateOfMonth" value="1">
+        </div>
+        
+        <button type="button" id="btn-cancel-email-edit" class="submit-btn" style="background: transparent; border: 1px solid #555; color: #aaa; margin-top: 15px; padding: 10px; display: none;" onclick="loadScheduleSettings()">CANCEL EDIT</button>
+      </div>
+      
+    </div>
+    
+    <div class="settings-section">
+      <h4>🔍 Search Transactions</h4>
+      <div class="grid-2-col" style="margin-bottom: 15px;">
+        <div class="form-group" style="margin:0;"><label>Start Date</label><input type="date" id="searchStart" onchange="executeSearch()"></div>
+        <div class="form-group" style="margin:0;"><label>End Date</label><input type="date" id="searchEnd" onchange="executeSearch()"></div>
+        <div class="form-group full-width" style="margin:0;"><label>Category / Particulars</label><input type="text" id="searchCat" placeholder="e.g., SUGAR, MILK" oninput="executeSearch()"></div>
+        <div class="form-group full-width" style="margin:0;"><label>Exact Amount (Optional)</label><input type="text" id="searchAmt" inputmode="decimal" placeholder="0.00" oninput="executeSearch()"></div>
+      </div>
+      <div id="searchResults" style="max-height: 250px; overflow-y: auto;"></div>
+    </div>
+  </div>
+</div>
+
+<div id="autoSaveIndicator" class="auto-save-indicator">✓ Auto-saved</div>
+
+<div style="position: fixed; top: 0; left: 0; width: 2500px; height: 800px; z-index: -9999; opacity: 0; pointer-events: none; overflow: hidden;">
+  <div id="pdfChartCash" style="position:absolute; top:0; left:0; width:600px; height:250px; background:#fff;"></div>
+  <div id="pdfChartTotal" style="position:absolute; top:0; left:650px; width:600px; height:250px; background:#fff;"></div>
+  <div id="pdfChartExpensePie" style="position:absolute; top:0; left:1300px; width:500px; height:300px; background:#fff;"></div>
+  <div id="pdfQrCode" style="position:absolute; top:0; left: 1900px; background: white; padding: 10px;"></div>
+</div>
+
+<script>
+  const today = new Date();
+  const yyyy = today.getFullYear();
+  const mm = String(today.getMonth() + 1).padStart(2, '0');
+  const dd = String(today.getDate()).padStart(2, '0');
+  
+  const currentDateString = `${dd}-${mm}-${yyyy}`; 
+  const currentIsoDate = `${yyyy}-${mm}-${dd}`; 
+  const firstDayIso = `${yyyy}-${mm}-01`;
+  const lastDayOfMonth = new Date(yyyy, today.getMonth() + 1, 0).getDate();
+  const lastDayIso = `${yyyy}-${mm}-${String(lastDayOfMonth).padStart(2, '0')}`;
+
+  const WEB_APP_URL = "https://sts-proxy.saikat212567.workers.dev/";
+  let _sph = "";
+  Object.defineProperty(window, 'systemPinHash', {
+      get() { return _sph; },
+      set(v) { 
+          if (typeof v === 'string' && (v === '' || v.length === 64)) _sph = v;
+          else console.warn('Invalid PIN hash assignment blocked.');
+      },
+      configurable: false
+  });
+  
+  const fmtINR = (val) => {
+      if (isNaN(val) || val === null) return "0.00";
+      return Number(val).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  };
+
+  function toDDMMYYYY(isoStr) {
+      if(!isoStr) return "";
+      let p = isoStr.split('-');
+      if (p.length !== 3) return isoStr;
+      return `${p[2]}-${p[1]}-${p[0]}`;
+  }
+
+  async function hashPIN(pin) {
+      const msgBuffer = new TextEncoder().encode(pin);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  // SECURITY: HTML sanitizer to prevent XSS via innerHTML injection
+  function escHTML(str) {
+      if (str === null || str === undefined) return '';
+      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+                        .replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+                        .replace(/'/g, '&#039;');
+  }
+
+  // SECURITY: Safe JSON parser for localStorage data
+  function safeParse(key, fallback) {
+      if (fallback === undefined) fallback = {};
+      try {
+          let val = localStorage.getItem(key);
+          return val ? JSON.parse(val) : fallback;
+      } catch(e) {
+          console.warn('Corrupted localStorage key:', key, e);
+          localStorage.removeItem(key);
+          return fallback;
+      }
+  }
+  
+  function triggerSettingsPin() {
+      if (!systemPinHash) { toggleViews('settings'); return; }
+      document.getElementById('pinDesc').innerText = "Enter PIN to access Settings.";
+      pendingTargetDate = "SETTINGS";
+      document.getElementById('pinInput').value = "";
+      document.getElementById('pinModal').style.display = "flex";
+      setTimeout(() => document.getElementById('pinInput').focus(), 100);
+  }
+
+  function onUserDateChange(el) {
+      let selected = el.value;
+      if (selected < currentIsoDate && systemPinHash) {
+          pendingTargetDate = selected;
+          document.getElementById('pinDesc').innerText = `Enter PIN to edit ${toDDMMYYYY(selected)}`;
+          document.getElementById('pinInput').value = "";
+          document.getElementById('pinModal').style.display = "flex";
+          setTimeout(() => document.getElementById('pinInput').focus(), 100);
+      } else {
+          authorizedInputDate = selected;
+          executeDateChange(el, selected);
+      }
+  }
+
+  let pinAttempts = 0;
+  const MAX_PIN_ATTEMPTS = 5;
+
+  async function verifyPin() {
+      if (pinAttempts >= MAX_PIN_ATTEMPTS) {
+          alert("🔒 Too many failed attempts. Please refresh the page.");
+          return;
+      }
+      const input = document.getElementById('pinInput').value;
+      const inputHash = await hashPIN(input);
+      if (inputHash === systemPinHash || !systemPinHash) {
+          pinAttempts = 0;
+          document.getElementById('pinModal').style.display = "none";
+          if (pendingTargetDate === "SETTINGS") {
+              toggleViews('settings');
+          } else {
+              authorizedInputDate = pendingTargetDate;
+              let el = document.getElementById('dateField');
+              el.value = pendingTargetDate;
+              executeDateChange(el, pendingTargetDate);
+          }
+      } else {
+          pinAttempts++;
+          alert(`❌ Incorrect PIN (${MAX_PIN_ATTEMPTS - pinAttempts} attempts remaining)`);
+          document.getElementById('pinInput').value = "";
+      }
+  }
+
+  function cancelPin() { 
+      document.getElementById('pinModal').style.display = 'none'; 
+      let el = document.getElementById('dateField'); 
+      el.value = authorizedInputDate; 
+      updateDispDate(el); 
+  }
+
+  async function saveNewPin() {
+      const p1 = document.getElementById('newPinInput').value;
+      const p2 = document.getElementById('confirmNewPinInput').value;
+      if(p1.length < 4) return alert("PIN must be at least 4 digits.");
+      if(p1 !== p2) return alert("PINs do not match!");
+      const hashed = await hashPIN(p1);
+      
+      triggerAutoSaveIndicator("⏳ Saving to Cloud...");
+      fetch(WEB_APP_URL, {
+          method: 'POST', headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({ action: "UPDATE_PIN", pin: hashed })
+      }).then(r => r.json()).then(d => {
+          if(d.status === 'success') {
+              systemPinHash = hashed;
+              alert("✅ Cloud PIN Updated Successfully!");
+              document.getElementById('newPinInput').value = "";
+              document.getElementById('confirmNewPinInput').value = "";
+          } else { alert("⚠️ Failed to update PIN."); }
+      }).catch(e => alert("⚠️ Network Error"));
+  }
+
+  function validateEmails(str) {
+      if(!str) return false;
+      let emails = str.split(',').map(e => e.trim());
+      let re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      return emails.every(e => re.test(e));
+  }
+
+  function requestEmailOtp() {
+      let emails = document.getElementById('schEmail').value;
+      if(!validateEmails(emails)) return alert("Invalid email format.");
+      document.getElementById('btn-req-otp').innerText = "SENDING...";
+      fetch(WEB_APP_URL, {
+          method: "POST", headers: {"Content-Type": "text/plain;charset=utf-8"},
+          body: JSON.stringify({ action: "REQUEST_OTP", emails: emails }) 
+      }).then(r=>r.json()).then(d => {
+          if(d.status === 'success') {
+              document.getElementById('otpGroup').style.display = "block";
+              alert("✅ OTP Sent to Email");
+          } else { 
+              alert("⚠️ Error: " + d.message); 
+          }
+          document.getElementById('btn-req-otp').innerText = "SEND OTP";
+      }).catch(e => { alert("⚠️ Network error"); document.getElementById('btn-req-otp').innerText = "SEND OTP"; });
+  }
+
+  function verifyOtpAndSave() {
+      let emails = document.getElementById('schEmail').value;
+      let otp = document.getElementById('schOtp').value;
+      let freq = document.getElementById('schFrequency').value;
+      let dayVal = document.getElementById('schDayOfWeek').value;
+      let dateVal = document.getElementById('schDateOfMonth').value;
+      
+      if(!otp) return alert("Enter OTP");
+      document.getElementById('btn-verify-otp').innerText = "VERIFYING...";
+      
+      fetch(WEB_APP_URL, {
+          method: "POST", headers: {"Content-Type": "text/plain;charset=utf-8"},
+          body: JSON.stringify({ action: "VERIFY_OTP", emails: emails, otp: otp, frequency: freq })
+      }).then(r=>r.json()).then(d => {
+          if(d.status === 'success') {
+              try {
+                  // Save config locally WITH the specific day and date
+                  let confData = { emails: emails, freq: freq, day: dayVal, date: dateVal };
+                  localStorage.setItem('sankar_email_config', JSON.stringify(confData));
+                  console.log("Email Config hard-saved to local storage.");
+                  
+                  // Push the exact schedule to Cloudflare KV for the Cron Job to use
+                  fetch(WEB_APP_URL, {
+                      method: "POST", headers: {"Content-Type": "text/plain;charset=utf-8"},
+                      body: JSON.stringify({ 
+                          action: "SAVE_EMAIL_CONFIG", 
+                          config: { email: emails, freq: freq, day: parseInt(dayVal), date: parseInt(dateVal) } 
+                      })
+                  }).catch(err => console.warn("Email config sync failed:", err));
+              } catch(storageErr) {
+                  console.error("Storage Error:", storageErr);
+              }
+              
+              document.getElementById('otpGroup').style.display = "none";
+              document.getElementById('schOtp').value = "";
+              alert("✅ Scheduled Email Configuration Saved in Cloud!");
+              loadScheduleSettings(); 
+          } else { 
+              alert("⚠️ Invalid or Expired OTP"); 
+          }
+          document.getElementById('btn-verify-otp').innerText = "VERIFY & SAVE";
+      }).catch(e => { 
+          alert("⚠️ Network error while verifying OTP"); 
+          document.getElementById('btn-verify-otp').innerText = "VERIFY & SAVE"; 
+      });
+  }
+
+  function loadScheduleSettings() {
+      try {
+          let conf = safeParse('sankar_email_config');
+          
+          if(conf.emails && conf.freq) {
+              document.getElementById('emailDisplayView').style.display = "block";
+              document.getElementById('emailEditView').style.display = "none";
+              document.getElementById('displayEmailList').innerText = conf.emails;
+              
+              // Make the dashboard show you exactly what day it will send!
+              let freqText = conf.freq;
+              if (conf.freq === 'WEEKLY') {
+                  const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+                  freqText += " (Every " + days[conf.day || 0] + ")";
+              }
+              if (conf.freq === 'MONTHLY') freqText += " (On the " + getOrdinal(conf.date || 1) + ")";
+              
+              document.getElementById('displayEmailFreq').innerText = freqText;
+              
+              // Repopulate the hidden day/date inputs so edits don't start blank
+              document.getElementById('schEmail').value = conf.emails;
+              document.getElementById('schFrequency').value = conf.freq;
+              if(conf.day) document.getElementById('schDayOfWeek').value = conf.day;
+              if(conf.date) {
+                  document.getElementById('schDateOfMonth').value = conf.date;
+                  document.querySelectorAll('.cal-day').forEach(d => {
+                      if(d.innerText == conf.date) d.classList.add('selected');
+                      else d.classList.remove('selected');
+                  });
+              }
+              updateFreqUI();
+              
+              let cancelBtn = document.getElementById('btn-cancel-email-edit');
+              if(cancelBtn) cancelBtn.style.display = "block";
+          } else {
+              showEmailEditView();
+          }
+      } catch (error) {
+          console.error("Corrupted localStorage email config. Resetting to blank state.", error);
+          localStorage.removeItem('sankar_email_config'); // Purge bad data
+          showEmailEditView();
+      }
+  }
+
+  function showEmailEditView() {
+      document.getElementById('emailDisplayView').style.display = "none";
+      document.getElementById('emailEditView').style.display = "block";
+  }
+
+  function updateFreqUI() {
+    const freq = document.getElementById('schFrequency').value;
+    document.getElementById('weeklyInputGroup').style.display = (freq === 'WEEKLY') ? 'block' : 'none';
+    document.getElementById('monthlyInputGroup').style.display = (freq === 'MONTHLY') ? 'block' : 'none';
+  }
+  function toggleViews(viewName) {
+    document.getElementById('view-input').style.display = 'none'; 
+    document.getElementById('view-summary').style.display = 'none'; 
+    document.getElementById('view-dash').style.display = 'none'; 
+    document.getElementById('view-settings').style.display = 'none';
+    
+    if (viewName !== 'settings') {
+        document.getElementById('searchStart').value = ""; 
+        document.getElementById('searchEnd').value = ""; 
+        document.getElementById('searchCat').value = ""; 
+        document.getElementById('searchAmt').value = ""; 
+        document.getElementById('searchResults').innerHTML = "";
+    }
+    
+    if (viewName === 'summary') { syncDraftDataAndSave(); document.getElementById('view-summary').style.display = 'block'; renderSummary(); } 
+    else if (viewName === 'dash') { document.getElementById('view-dash').style.display = 'block'; } 
+    else if (viewName === 'settings') { document.getElementById('view-settings').style.display = 'block'; loadScheduleSettings(); } 
+    else { document.getElementById('view-input').style.display = 'block'; }
+  }
+
+  function executeSearch() {
+      let start = document.getElementById('searchStart').value;
+      let end = document.getElementById('searchEnd').value;
+      let cat = document.getElementById('searchCat').value.toLowerCase();
+      let amtStr = document.getElementById('searchAmt').value;
+      let amt = amtStr ? parseFloat(amtStr) : null;
+
+      if (!start && !end && !cat && !amtStr) {
+          document.getElementById('searchResults').innerHTML = ""; return;
+      }
+
+      let results = [];
+      sortedAppDates.forEach(d => {
+          if (start && d < start) return;
+          if (end && d > end) return;
+          let rows = appData.byDate[d] || [];
+          rows.forEach(r => {
+              if (r.particulars === 'CLOSING CASH' || r.particulars === 'CLOSING FLOAT' || r.particulars === 'CLOSING BANK BALANCE' || r.particulars === 'RESERVE IN') return;
+              let match = true;
+              if (cat && !r.particulars.toLowerCase().includes(cat) && !r.account.toLowerCase().includes(cat)) match = false;
+              if (amt !== null && parseFloat(r.amount) !== amt) match = false;
+              if (match) results.push(r);
+          });
+      });
+
+      let html = "";
+      if (results.length === 0) {
+          html = `<div style="text-align:center; color:#888; font-style:italic; padding: 20px;">No matching transactions found.</div>`;
+      } else {
+          results.forEach(r => {
+              html += `<div class="search-result-item ${escHTML(r.account)}" onclick="jumpToDate('${escHTML(r.date)}')">
+                  <div><strong style="color:${r.account==='BANK'?'#2196F3':'#FF9800'}">${escHTML(r.particulars)}</strong><br><span class="search-result-details">${escHTML(toDDMMYYYY(r.date))} • ${escHTML(r.account)}</span></div>
+                  <div style="font-size:15px; font-weight:bold;">₹${fmtINR(r.amount)}</div>
+              </div>`;
+          });
+      }
+      document.getElementById('searchResults').innerHTML = html;
+  }
+
+  function jumpToDate(isoDate) {
+      toggleViews('input');
+      let dateField = document.getElementById('dateField');
+      dateField.value = isoDate;
+      onUserDateChange(dateField);
+  }
+
+  let draftData = { cashInTotal: 0, cashInReserve: 0, cashInOther: 0, cashInNotes: {}, cashInCoins: {}, bankInTotal: 0, bankInOther: 0, bankInCapRet: 0, bankOutCapital: 0, cashOut: [], bankOut: [] };
+  let appData = { stsj: [], byDate: {} };
+  let sortedAppDates = [];
+  let dailyBalances = {};
+  let dayStatsCache = {}; 
+  
+  let authorizedInputDate = currentIsoDate;
+  let pendingTargetDate = ""; 
+  let currentPlMode = 'TODAY'; 
+  
+  let loadedPastExpenses = {};
+  const expMappings = {
+      'CASH': { 'FAMILY': 'c_outFamily', 'SUGAR': 'c_outSugar', 'SHOP GOODS': 'c_outShop', 'TEA': 'c_outTea', 'MILK': 'c_outMilk', 'OTHER': 'c_outOther', 'BANK TRANSFER': 'c_outBank', 'OTHER INCOME': 'c_otherIncome' },
+      'BANK': { 'FAMILY': 'b_outFamily', 'SUGAR': 'b_outSugar', 'SHOP GOODS': 'b_outShop', 'TEA': 'b_outTea', 'MILK': 'b_outMilk', 'OTHER': 'b_outOther', 'BANK TO CASH TRANSFER': 'b_outBank', 'OTHER INCOME': 'b_otherIncome', 'CAPITAL INVESTMENT': 'b_capitalInv', 'CAPITAL RETURNED': 'b_capitalRet' }
+  };
+  
+  function toggleInputLock(isLocked) {
+      const loadingBanner = document.getElementById('inputLoading');
+      if (loadingBanner) loadingBanner.style.display = isLocked ? 'block' : 'none';
+      
+      document.querySelectorAll('.calc-input').forEach(i => i.disabled = isLocked);
+      
+      // FIXED: Strictly lock the date input and settings button while fetching data
+      const dateDisp = document.getElementById('disp-dateField');
+      if(dateDisp) {
+          if(isLocked) dateDisp.classList.add('locked');
+          else dateDisp.classList.remove('locked');
+      }
+      
+      const settingsBtn = document.querySelector('.btn-top-settings');
+      if (settingsBtn) {
+          settingsBtn.style.pointerEvents = isLocked ? 'none' : 'auto';
+          settingsBtn.style.opacity = isLocked ? '0.5' : '1';
+      }
+      
+      const dateWrap = document.querySelector('.date-group .date-overlay-wrapper');
+      if (dateWrap) {
+          dateWrap.style.pointerEvents = isLocked ? 'none' : 'auto';
+      }
+  }
+
+  function updateDispDate(el) {
+    if(el.value) { let p = el.value.split('-'); let dispEl = document.getElementById('disp-' + el.id); if(dispEl) dispEl.value = `${p[2]}-${p[1]}-${p[0]}`; }
+  }
+
+  function executeDateChange(el, targetDate) {
+      updateDispDate(el); document.querySelectorAll('.calc-input').forEach(i => i.value = "");
+      buildLoadedPastExpenses(targetDate); populateFormFromBaseline(); calculateCashIn(); syncDraftDataAndSave();
+  }
+
+  function buildLoadedPastExpenses(targetDate) {
+      loadedPastExpenses = {}; let rows = appData.byDate[targetDate] || []; let bankBal = 0, floatBal = 0;
+      for (let i = rows.length - 1; i >= 0; i--) {
+          let r = rows[i]; let amt = parseFloat(r.amount) || 0; 
+          if (r.account === 'CASH' && expMappings.CASH[r.particulars]) loadedPastExpenses[expMappings.CASH[r.particulars]] = (loadedPastExpenses[expMappings.CASH[r.particulars]] || 0) + amt;
+          if (r.account === 'BANK' && expMappings.BANK[r.particulars]) loadedPastExpenses[expMappings.BANK[r.particulars]] = (loadedPastExpenses[expMappings.BANK[r.particulars]] || 0) + amt;
+          if (r.account === 'BANK' && r.particulars === 'CLOSING BANK BALANCE' && bankBal === 0) bankBal = amt;
+          if (r.account === 'CASH' && (r.particulars === 'CLOSING FLOAT' || r.particulars === 'RESERVE IN') && floatBal === 0) floatBal = amt;
+      }
+      let denomRow = appData.stsj.slice().reverse().find(r => (r.denomDate === targetDate || (r.date === targetDate && r.particulars === "CLOSING CASH")) && ['note500', 'note200', 'note100', 'note50', 'note20', 'note10', 'coin20', 'coin10', 'coin5', 'coin2', 'coin1'].some(k => r[k] !== "" && r[k] !== undefined && r[k] !== null));
+      if (denomRow) { ['note10', 'note20', 'note50', 'note100', 'note200', 'note500', 'coin1', 'coin2', 'coin5', 'coin10', 'coin20'].forEach(denom => { if (denomRow[denom] !== undefined && denomRow[denom] !== "") loadedPastExpenses[denom] = denomRow[denom]; }); }
+      loadedPastExpenses['bankInAmount'] = bankBal; loadedPastExpenses['reserveIn'] = floatBal;
+  }
+
+  function populateFormFromBaseline() { for (let id in loadedPastExpenses) { if (loadedPastExpenses[id] !== 0 && loadedPastExpenses[id] !== "") { let el = document.getElementById(id); if(el) el.value = loadedPastExpenses[id]; } } }
+
+  function changeTheme() {
+    const accType = document.getElementById('accountType').value; const root = document.documentElement;
+    const viewInput = document.getElementById('view-input'); viewInput.style.animation = 'none'; viewInput.offsetHeight; viewInput.style.animation = 'popIn 0.3s ease forwards';
+    if (accType === 'BANK') {
+      root.style.setProperty('--theme-color', '#2196F3'); root.style.setProperty('--theme-hover', '#1976D2');
+      document.getElementById('cashInForm').style.display = "none"; document.getElementById('bankInForm').style.display = "block";
+      document.getElementById('cashOutForm').style.display = "none"; document.getElementById('bankOutForm').style.display = "block";
+    } else {
+      root.style.setProperty('--theme-color', '#FF9800'); root.style.setProperty('--theme-hover', '#e68a00');
+      document.getElementById('bankInForm').style.display = "none"; document.getElementById('cashInForm').style.display = "block";
+      goToNotes(); document.getElementById('bankOutForm').style.display = "none"; document.getElementById('cashOutForm').style.display = "block";
+    }
+  }
+
+  function switchTab(tabName) { document.getElementById('tab-in').className = tabName === 'in' ? 'tab-content active' : 'tab-content'; document.getElementById('tab-out').className = tabName === 'out' ? 'tab-content active' : 'tab-content'; document.getElementById('btn-in').className = tabName === 'in' ? 'tab-btn active' : 'tab-btn'; document.getElementById('btn-out').className = tabName === 'out' ? 'tab-btn active' : 'tab-btn'; }
+
+  function editSection(accountType, tabName) { toggleViews('input'); document.getElementById('accountType').value = accountType; changeTheme(); switchTab(tabName); }
+  function goToCoins() { document.getElementById('step-notes').style.display = 'none'; document.getElementById('step-coins').style.display = 'block'; document.getElementById('step-coins').style.animation = 'fadeSlideUp 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) forwards'; }
+  function goToNotes() { document.getElementById('step-coins').style.display = 'none'; document.getElementById('step-notes').style.display = 'block'; document.getElementById('step-notes').style.animation = 'fadeSlideUp 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) forwards'; }
+
+  function calculateCashIn() {
+    const reserve = parseFloat(document.getElementById('reserveIn').value) || 0; const otherIn = parseFloat(document.getElementById('c_otherIncome').value) || 0;
+    const total = (parseFloat(document.getElementById('note500').value) || 0) * 500 + (parseFloat(document.getElementById('note200').value) || 0) * 200 + (parseFloat(document.getElementById('note100').value) || 0) * 100 + (parseFloat(document.getElementById('note50').value) || 0) * 50 + (parseFloat(document.getElementById('note20').value) || 0) * 20 + (parseFloat(document.getElementById('note10').value) || 0) * 10 + (parseFloat(document.getElementById('coin20').value) || 0) * 20 + (parseFloat(document.getElementById('coin10').value) || 0) * 10 + (parseFloat(document.getElementById('coin5').value) || 0) * 5 + (parseFloat(document.getElementById('coin2').value) || 0) * 2 + (parseFloat(document.getElementById('coin1').value) || 0) * 1 + reserve + otherIn;
+    document.getElementById('calcTotal').innerText = "₹" + fmtINR(total); return total;
+  }
+
+  let autoSaveTimerId;
+  function triggerAutoSaveIndicator(msg = "✓ Auto-saved") { 
+      const indicator = document.getElementById('autoSaveIndicator'); 
+      if (indicator) {
+          indicator.innerText = msg; indicator.classList.add('show'); 
+          clearTimeout(autoSaveTimerId); 
+          autoSaveTimerId = setTimeout(() => { indicator.classList.remove('show'); }, 2500); 
+      }
+  }
+
+  function syncDraftDataAndSave() {
+    draftData.cashInTotal = calculateCashIn(); draftData.cashInReserve = parseFloat(document.getElementById('reserveIn').value) || 0; draftData.cashInOther = parseFloat(document.getElementById('c_otherIncome').value) || 0;
+    draftData.cashInNotes = {}; ['note500', 'note200', 'note100', 'note50', 'note20', 'note10'].forEach(id => { const val = parseInt(document.getElementById(id).value); if (val > 0) draftData.cashInNotes[id.replace('note', '')] = val; });
+    draftData.cashInCoins = {}; ['coin20', 'coin10', 'coin5', 'coin2', 'coin1'].forEach(id => { const val = parseInt(document.getElementById(id).value); if (val > 0) draftData.cashInCoins[id.replace('coin', '')] = val; });
+    draftData.bankInTotal = parseFloat(document.getElementById('bankInAmount').value) || 0; draftData.bankInOther = parseFloat(document.getElementById('b_otherIncome').value) || 0; draftData.bankInCapRet = parseFloat(document.getElementById('b_capitalRet').value) || 0; draftData.bankOutCapital = parseFloat(document.getElementById('b_capitalInv').value) || 0;
+
+    const getArr = (cats) => { let arr = []; cats.forEach(cat => { const val = parseFloat(document.getElementById(cat.id).value) || 0; if (val > 0 || (loadedPastExpenses[cat.id] || 0) > 0) { arr.push({ id: cat.id, name: cat.name, amount: val }); } }); return arr; }
+    draftData.cashOut = getArr([{id:'c_outFamily',name:'FAMILY'},{id:'c_outSugar',name:'SUGAR'},{id:'c_outShop',name:'SHOP GOODS'},{id:'c_outTea',name:'TEA'},{id:'c_outMilk',name:'MILK'},{id:'c_outOther',name:'OTHER'},{id:'c_outBank',name:'BANK TRANSFER'}]);
+    draftData.bankOut = getArr([{id:'b_outFamily',name:'FAMILY'},{id:'b_outSugar',name:'SUGAR'},{id:'b_outShop',name:'SHOP GOODS'},{id:'b_outTea',name:'TEA'},{id:'b_outMilk',name:'MILK'},{id:'b_outOther',name:'OTHER'},{id:'b_outBank',name:'BANK TO CASH TRANSFER'}]);
+
+    const savedInputs = {}; document.querySelectorAll('.calc-input').forEach(input => { savedInputs[input.id] = input.value; });
+    localStorage.setItem('sankar_inputs', JSON.stringify(savedInputs)); localStorage.setItem('sankar_date', document.getElementById('dateField').value); triggerAutoSaveIndicator();
+  }
+
+  let isSyncing = false;
+  function computeBalances() {
+      dailyBalances = {}; let runCashBase = 0, runFloat = 0, runBank = 0;
+      sortedAppDates.forEach(d => {
+          let rows = appData.byDate[d]; let foundPC = false, foundPF = false, foundPB = false;
+          for (let i = rows.length - 1; i >= 0; i--) {
+              let r = rows[i];
+              if (r.account === "CASH" && r.particulars === "CLOSING CASH" && !foundPC) { runCashBase = r.amount; foundPC = true; }
+              if (r.account === "CASH" && (r.particulars === "CLOSING FLOAT" || r.particulars === "RESERVE IN") && !foundPF) { runFloat = r.amount; foundPF = true; }
+              if (r.account === "BANK" && r.particulars === "CLOSING BANK BALANCE" && !foundPB) { runBank = r.amount; foundPB = true; }
+          }
+          dailyBalances[d] = { cashBase: runCashBase, float: runFloat, bank: runBank };
+      });
+  }
+
+  function processIncomingData(dataList) {
+    appData.stsj = dataList || []; appData.byDate = {}; dayStatsCache = {};
+    appData.stsj.forEach(r => { if(!appData.byDate[r.date]) appData.byDate[r.date] = []; appData.byDate[r.date].push(r); });
+    sortedAppDates = Object.keys(appData.byDate).sort(); computeBalances(); localStorage.setItem('sankar_appData', JSON.stringify(appData.stsj));
+  }
+
+  function checkAutoEmail() {
+      let conf = safeParse('sankar_email_config');
+      if(!conf.emails || !conf.freq) return;
+
+      let lastSent = localStorage.getItem('sankar_last_auto_email_' + conf.freq) || "";
+      let shouldSend = false;
+      let sIso = currentIsoDate, eIso = currentIsoDate;
+
+      if (conf.freq === 'DAILY') {
+          if (lastSent !== currentIsoDate) { shouldSend = true; }
+      } else if (conf.freq === 'WEEKLY') {
+          let last = lastSent ? new Date(lastSent) : new Date(0);
+          let diffDays = Math.floor((new Date() - last) / (1000*60*60*24));
+          if (diffDays >= 7 || lastSent === "") {
+              shouldSend = true;
+              let lw = new Date(); lw.setDate(lw.getDate() - 6);
+              sIso = lw.toISOString().split('T')[0];
+          }
+      } else if (conf.freq === 'MONTHLY') {
+          let curMonth = currentIsoDate.substring(0,7);
+          if (lastSent !== curMonth) {
+              shouldSend = true;
+              sIso = firstDayIso; eIso = lastDayIso;
+          }
+      }
+
+      if(shouldSend) {
+          console.log("Triggering Auto-Email in background...");
+          buildNativePDF('AUTO_EMAIL', conf.emails, sIso, eIso).then(() => {
+              let tag = conf.freq === 'MONTHLY' ? currentIsoDate.substring(0,7) : currentIsoDate;
+              localStorage.setItem('sankar_last_auto_email_' + conf.freq, tag);
+              console.log("Auto-Statement Emailed Silently!");
+          }).catch(e => console.log("Auto-email failed: " + e));
+      }
+  }
+
+  function fetchAppDataQuietly() {
+    // Record exactly when this fetch started
+    const fetchStartTime = Date.now(); 
+    
+    fetch(WEB_APP_URL).then(res => res.json()).then(data => {
+        if(data.status === "success" && Array.isArray(data.stsj)) { 
+          try {
+            systemPinHash = data.pinHash || "";
+            // ইমেইল কনফিগারেশন পিনের মতোই সার্ভার থেকে সিঙ্ক করে নেবে
+            if(data.emailConfig && data.emailConfig.emails) {
+                localStorage.setItem('sankar_email_config', JSON.stringify(data.emailConfig));
+            }
+            let oldStr = localStorage.getItem('sankar_appData'); 
+            let serverData = data.stsj; 
+            
+            let syncQueue = safeParse('sankar_sync_queue', []);
+            let lastSyncTime = parseInt(localStorage.getItem('sankar_last_sync_time') || '0');
+            
+            // If queue is active OR a sync finished while this fetch was in-flight, abort to prevent overwriting
+            if (syncQueue.length > 0 || lastSyncTime > fetchStartTime) { 
+                toggleInputLock(false); 
+                return; 
+            }
+            
+            let newStr = JSON.stringify(serverData);
+            if(oldStr !== newStr) {
+                processIncomingData(serverData); 
+                checkAutoEmail(); 
+                if (document.getElementById('view-dash').style.display === 'block') { 
+                    renderSalesDashboard(); renderBalancesDashboard(); renderStatsDashboard(); 
+                } else if (document.getElementById('view-input').style.display === 'block') {
+                    let activeDate = document.getElementById('dateField').value; 
+                    let oldPastExpenses = { ...loadedPastExpenses }; 
+                    buildLoadedPastExpenses(activeDate); 
+                    document.querySelectorAll('.calc-input').forEach(el => {
+                        if (document.activeElement === el) return; 
+                        let currentVal = parseFloat(el.value) || 0; 
+                        let oldPast = parseFloat(oldPastExpenses[el.id]) || 0; 
+                        let newPast = parseFloat(loadedPastExpenses[el.id]) || 0;
+                        if (currentVal === oldPast && newPast !== oldPast) { el.value = newPast === 0 ? "" : newPast; }
+                    });
+                    calculateCashIn(); syncDraftDataAndSave();
+                    if (document.getElementById('view-summary').style.display === 'block') { renderSummary(); }
+                }
+            } else { checkAutoEmail(); }
+          } catch(err) { console.error(err); } toggleInputLock(false);
+        }
+      }).catch(e => { toggleInputLock(false); });
+  }
+
+  function processSyncQueue() {
+    if (isSyncing) return; 
+    let queue = safeParse('sankar_sync_queue', []); 
+    if (queue.length === 0) { fetchAppDataQuietly(); return; }
+    
+    isSyncing = true; 
+    let entriesToSend = queue[0];
+    
+    function attemptSend(retries = 3) {
+      fetch(WEB_APP_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(entriesToSend) })
+      .then(response => response.json())
+      .then(data => {
+        if(data.status === "success") { 
+            let currentQueue = safeParse('sankar_sync_queue', []); 
+            currentQueue.shift(); 
+            localStorage.setItem('sankar_sync_queue', JSON.stringify(currentQueue)); 
+            
+            // Mark the exact time the sync finished to protect against stale fetches
+            localStorage.setItem('sankar_last_sync_time', Date.now().toString());
+            
+            triggerAutoSaveIndicator("✅ Cloud Sync Complete!"); 
+            isSyncing = false; 
+            
+            if (currentQueue.length > 0) {
+                processSyncQueue(); 
+            } else {
+                // Force a fresh data pull after all syncs are done
+                fetchAppDataQuietly();
+            }
+        } else throw new Error("Server Error");
+      }).catch(err => { 
+          if(retries > 0) { let delay = 3000 * Math.pow(2, 3 - retries); setTimeout(() => attemptSend(retries - 1), delay); } 
+          else { triggerAutoSaveIndicator("⚠️ Sync paused. Will retry later."); isSyncing = false; } 
+      });
+    }
+    attemptSend();
+  }
+
+  function applyYesterdayClosingAsToday() {
+    if (loadedPastExpenses['note500'] !== undefined || loadedPastExpenses['bankInAmount'] !== undefined) return;
+    let prevDate = null; for (let i = sortedAppDates.length - 1; i >= 0; i--) { if (sortedAppDates[i] < currentIsoDate) { prevDate = sortedAppDates[i]; break; } }
+    if (!prevDate) return;
+    let tempPast = {}; let rows = appData.byDate[prevDate] || [];
+    let denomRow = appData.stsj.slice().reverse().find(r => (r.denomDate === prevDate || (r.date === prevDate && r.particulars === "CLOSING CASH")) && ['note500','note200','note100','note50','note20','note10','coin20','coin10','coin5','coin2','coin1'].some(k => r[k] !== "" && r[k] !== undefined && r[k] !== null));
+    if (denomRow) { ['note10','note20','note50','note100','note200','note500','coin1','coin2','coin5','coin10','coin20'].forEach(d => { if (denomRow[d] !== undefined && denomRow[d] !== "") tempPast[d] = denomRow[d]; }); }
+    for (let i = rows.length - 1; i >= 0; i--) {
+      let r = rows[i]; let amt = parseFloat(r.amount) || 0;
+      if (r.account === 'BANK' && r.particulars === 'CLOSING BANK BALANCE' && !tempPast['bankInAmount']) tempPast['bankInAmount'] = amt;
+      if (r.account === 'CASH' && (r.particulars === 'CLOSING FLOAT' || r.particulars === 'RESERVE IN') && !tempPast['reserveIn']) tempPast['reserveIn'] = amt;
+    }
+    for (let key in tempPast) { if (!loadedPastExpenses[key]) loadedPastExpenses[key] = tempPast[key]; }
+  }
+
+  let debounceSaveTimer;
+  function processInputSave() { clearTimeout(debounceSaveTimer); debounceSaveTimer = setTimeout(() => { syncDraftDataAndSave(); }, 400); }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('dateField').value = currentIsoDate; updateDispDate(document.getElementById('dateField'));
+    let cachedStr = localStorage.getItem('sankar_appData'); if (cachedStr && cachedStr.length > 10) { try { processIncomingData(JSON.parse(cachedStr)); toggleInputLock(false); } catch(e) { toggleInputLock(true); } } else { toggleInputLock(true); }
+    buildLoadedPastExpenses(currentIsoDate); applyYesterdayClosingAsToday();
+    const savedInputsStr = localStorage.getItem('sankar_inputs'); const savedDate = localStorage.getItem('sankar_date');
+    if (savedInputsStr && savedDate === currentIsoDate) { try { const savedInputs = JSON.parse(savedInputsStr); Object.keys(savedInputs).forEach(id => { const el = document.getElementById(id); if (el) el.value = savedInputs[id]; }); } catch (e) {} } else { populateFormFromBaseline(); localStorage.removeItem('sankar_inputs'); }
+    calculateCashIn(); syncDraftDataAndSave(); processSyncQueue();
+  });
+
+  document.querySelectorAll('.calc-input').forEach(input => {
+    // CRITICAL: Block the 'Enter' key from triggering partial, broken form saves!
+    input.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault(); 
+            this.blur(); // Cleanly exit input focus and calculate the mathematical expression string securely
+        }
+    });
+
+    input.addEventListener('input', function() { if (this.classList.contains('denom')) { calculateCashIn(); } processInputSave(); });
+    input.addEventListener('blur', function(e) {
+      let val = e.target.value; if (!val) return; val = val.replace(/,/g, '+').replace(/\s/g, '');
+      if (!/^[0-9.+\-]+$/.test(val)) return;
+      try {
+        let result = val.split(/(?=[+-])/).reduce((sum, token) => {
+            let num = parseFloat(token);
+            return isNaN(num) ? sum : sum + num;
+        }, 0);
+        if (!isNaN(result)) { e.target.value = Number.isInteger(result) ? result : Number(result).toFixed(2); e.target.dispatchEvent(new Event('input', { bubbles: true })); }
+      } catch (err) {}
+    });
+  });
+
+  document.getElementById('pinInput').addEventListener('keypress', function (e) { if (e.key === 'Enter') verifyPin(); });
+
+  function getPastBalances(targetDate) {
+      let prevDate = null; for (let i = sortedAppDates.length - 1; i >= 0; i--) { if (sortedAppDates[i] < targetDate) { prevDate = sortedAppDates[i]; break; } }
+      if (prevDate && dailyBalances[prevDate]) { return dailyBalances[prevDate]; } return { cashBase: 0, float: 0, bank: 0 };
+  }
+
+  // FIXED: Restored logic to prevent expenses showing as sale if Closing Cash is not submitted
+  function getDayStats(targetDate) {
+      if (dayStatsCache[targetDate]) return dayStatsCache[targetDate];
+      let todayRows = appData.byDate[targetDate] || []; let past = getPastBalances(targetDate);
+      let openTotalCash = past.cashBase + past.float; let openTotalBank = past.bank; let todayCashBase = 0, todayFloatRaw = -1, todayBankRaw = 0; let hasClosingCashEntry = false, hasClosingBankEntry = false;
+      
+      for (let i = todayRows.length - 1; i >= 0; i--) {
+          let r = todayRows[i];
+          if (r.account === "CASH" && r.particulars === "CLOSING CASH" && !hasClosingCashEntry) { todayCashBase = r.amount; hasClosingCashEntry = true; }
+          if (r.account === "CASH" && (r.particulars === "CLOSING FLOAT" || r.particulars === "RESERVE IN") && todayFloatRaw === -1) { todayFloatRaw = r.amount; }
+          if (r.account === "BANK" && r.particulars === "CLOSING BANK BALANCE" && !hasClosingBankEntry) { todayBankRaw = r.amount; hasClosingBankEntry = true; }
+      }
+      
+      let currentFloat = (todayFloatRaw !== -1) ? todayFloatRaw : past.float; let todayTotalClosingCash = hasClosingCashEntry ? (todayCashBase + currentFloat) : 0; let isFirstDayInSystem = (sortedAppDates.length > 0 && sortedAppDates[0] === targetDate);
+      let cashDiff = 0; if (hasClosingCashEntry) { cashDiff = todayTotalClosingCash - openTotalCash; if (isFirstDayInSystem) cashDiff = 0; }
+      let bankDiff = 0; if (hasClosingBankEntry) { bankDiff = todayBankRaw - openTotalBank; if (isFirstDayInSystem) bankDiff = 0; }
+
+      let cashExp = 0, bankExp = 0, c2b = 0, b2c = 0; let cOtherInc = 0, bOtherInc = 0, bCapitalInv = 0, bCapRet = 0; let cExpMap = {}; let bExpMap = {};
+      todayRows.forEach(r => {
+          if (r.account === "CASH") {
+              if (r.particulars === "BANK TRANSFER") { c2b += r.amount; } else if (r.particulars === "OTHER INCOME") { cOtherInc += r.amount; } else if (!["CLOSING CASH", "CLOSING FLOAT", "RESERVE IN"].includes(r.particulars)) { cashExp += r.amount; cExpMap[r.particulars] = (cExpMap[r.particulars] || 0) + r.amount; }
+          }
+          if (r.account === "BANK") {
+              if (r.particulars === "BANK TO CASH TRANSFER") { b2c += r.amount; } else if (r.particulars === "OTHER INCOME") { bOtherInc += r.amount; } else if (r.particulars === "CAPITAL RETURNED") { bCapRet += r.amount; } else if (r.particulars === "CAPITAL INVESTMENT") { bCapitalInv += r.amount; } else if (!["CLOSING BANK BALANCE"].includes(r.particulars)) { bankExp += r.amount; bExpMap[r.particulars] = (bExpMap[r.particulars] || 0) + r.amount; }
+          }
+      });
+      let cExpList = Object.keys(cExpMap).map(k => ({ particulars: k, amount: cExpMap[k] })); let bExpList = Object.keys(bExpMap).map(k => ({ particulars: k, amount: bExpMap[k] }));
+      
+      let cashSale = 0, cashProfit = 0; 
+      if (hasClosingCashEntry) {
+          let baseCashSale = cashDiff + cashExp + c2b - b2c; 
+          cashSale = baseCashSale - cOtherInc; 
+          cashProfit = cashSale - cashExp + cOtherInc;
+      }
+
+      let bankSale = 0, bankProfit = 0; 
+      if (hasClosingBankEntry) {
+          // + bCapitalInv (money went out to buy FD)
+          // - bCapRet (money came in from FD closing, so subtract from sales)
+          let baseBankSale = bankDiff + bankExp + b2c + bCapitalInv - bCapRet - c2b; 
+          bankSale = baseBankSale - bOtherInc; 
+          // Net Profit calculation remains stable
+          bankProfit = bankSale - bankExp + bOtherInc; 
+      }
+      
+      let finalStats = { cashSale, cashProfit, totalSale: (cashSale + bankSale), netProfit: (cashProfit + bankProfit), cashExp, bankExp, c2b, b2c, openTotalCash, todayTotalClosingCash, cashDiff, currentFloat, openTotalBank, todayClosingBank: todayBankRaw, bankDiff, cExpMap, bExpMap, cExpList, bExpList, hasClosingCashEntry, hasClosingBankEntry, cOtherInc, bOtherInc, bCapitalInv, bCapRet };
+      dayStatsCache[targetDate] = finalStats; return finalStats;
+  }
+
+  function getRangeStats(startIso, endIso) {
+      let allDates = Object.keys(appData.byDate).filter(d => d >= startIso && d <= endIso);
+      let agg = { cashExp: 0, bankExp: 0, cExpMap: {}, bExpMap: {}, b2c: 0, c2b: 0, cashSale: 0, cashProfit: 0, totalSale: 0, netProfit: 0, cOtherInc: 0, bOtherInc: 0 };
+      allDates.forEach(d => {
+          let st = getDayStats(d);
+          agg.cashExp += st.cashExp; agg.bankExp += st.bankExp; agg.b2c += st.b2c; agg.c2b += st.c2b; agg.cashSale += st.cashSale; agg.cashProfit += st.cashProfit; agg.totalSale += st.totalSale; agg.netProfit += st.netProfit;
+          agg.cOtherInc += st.cOtherInc; agg.bOtherInc += st.bOtherInc;
+          Object.keys(st.cExpMap).forEach(k => { agg.cExpMap[k] = (agg.cExpMap[k] || 0) + st.cExpMap[k]; });
+          Object.keys(st.bExpMap).forEach(k => { agg.bExpMap[k] = (agg.bExpMap[k] || 0) + st.bExpMap[k]; });
+      });
+      agg.cExpList = Object.keys(agg.cExpMap).map(k => ({ particulars: k, amount: agg.cExpMap[k] })); 
+      agg.bExpList = Object.keys(agg.bExpMap).map(k => ({ particulars: k, amount: agg.bExpMap[k] })); 
+      return agg;
+  }
+
+  function changeDashSection() {
+    const sel = document.getElementById('dashSectionDropdown').value;
+    document.getElementById('dash-sec-sales').style.display = (sel === 'SALES') ? 'block' : 'none'; document.getElementById('dash-sec-balances').style.display = (sel === 'BALANCES') ? 'block' : 'none'; document.getElementById('dash-sec-stats').style.display = (sel === 'STATS') ? 'block' : 'none';
+  }
+
+  function initDashDates() {
+    if (!document.getElementById('plDate').value) {
+      document.getElementById('plDate').value = currentIsoDate; document.getElementById('plStart').value = firstDayIso; document.getElementById('plEnd').value = currentIsoDate; document.getElementById('dashBalancesDate').value = currentIsoDate; document.getElementById('dashStartDate').value = firstDayIso; document.getElementById('dashEndDate').value = lastDayIso;
+      updateDispDate(document.getElementById('plDate')); updateDispDate(document.getElementById('plStart')); updateDispDate(document.getElementById('plEnd')); updateDispDate(document.getElementById('dashBalancesDate')); updateDispDate(document.getElementById('dashStartDate')); updateDispDate(document.getElementById('dashEndDate'));
+    }
+  }
+
+  function openDashboard() {
+    toggleViews('dash'); const contentUI = document.getElementById('dashContent');
+    if (appData.stsj && appData.stsj.length > 0) { initDashDates(); renderSalesDashboard(); renderBalancesDashboard(); renderStatsDashboard(); contentUI.style.display = 'block'; return; }
+    let cachedStr = localStorage.getItem('sankar_appData');
+    if (cachedStr) { try { processIncomingData(JSON.parse(cachedStr)); initDashDates(); renderSalesDashboard(); renderBalancesDashboard(); renderStatsDashboard(); contentUI.style.display = 'block'; return; } catch(e) {} } 
+    const loadingUI = document.getElementById('dashLoading'); loadingUI.style.display = 'block'; contentUI.style.display = 'none';
+    fetch(WEB_APP_URL).then(res => res.json()).then(data => { if(data.status === "success") { processIncomingData(data.stsj); loadingUI.style.display = 'none'; contentUI.style.display = 'block'; initDashDates(); renderSalesDashboard(); renderBalancesDashboard(); renderStatsDashboard(); } }).catch(err => { loadingUI.innerText = "⚠️ Error loading data."; loadingUI.style.color = "#F44336"; loadingUI.style.borderColor = "#F44336"; });
+  }
+
+  function setPlMode(mode) {
+      currentPlMode = mode;
+      if(mode === 'TODAY') { document.getElementById('pl-ui-today').style.display = 'block'; document.getElementById('pl-ui-custom').style.display = 'none'; } else if(mode === 'MONTH') { document.getElementById('pl-ui-today').style.display = 'none'; document.getElementById('pl-ui-custom').style.display = 'none'; } else if(mode === 'CUSTOM') { document.getElementById('pl-ui-today').style.display = 'none'; document.getElementById('pl-ui-custom').style.display = 'grid'; }
+      renderSalesDashboard();
+  }
+
+  function renderSalesDashboard() {
+    let stats;
+    if (currentPlMode === 'TODAY') { let d = document.getElementById('plDate').value || currentIsoDate; stats = getRangeStats(d, d); } else if (currentPlMode === 'MONTH') { stats = getRangeStats(firstDayIso, lastDayIso); } else if (currentPlMode === 'CUSTOM') { let s = document.getElementById('plStart').value || firstDayIso; let e = document.getElementById('plEnd').value || currentIsoDate; stats = getRangeStats(s, e); }
+
+    document.getElementById('d-tsale').innerText = "₹" + fmtINR(stats.totalSale); document.getElementById('d-csale').innerText = "₹" + fmtINR(stats.cashSale);
+    let np = document.getElementById('d-nprofit'); np.innerText = "₹" + fmtINR(stats.netProfit); np.style.color = stats.netProfit < 0 ? "#F44336" : "#2196F3"; document.getElementById('d-cprofit').innerText = "₹" + fmtINR(stats.cashProfit);
+
+    let allTotal = stats.cashExp + stats.bankExp; let html = "";
+    if(allTotal === 0) { html = `<div style="text-align:center; background:#2a2a2a; border-radius:8px; padding:20px; color:#888; font-size:13px; font-style:italic;">No expenses logged for this period.</div>`; } else {
+       html += `<div style="background:#2a2a2a; border-radius:8px; padding:15px;">`;
+       if(stats.cExpList.length > 0) { html += `<h4 style="color:#FF9800; font-size:12px; margin:0 0 10px 0;">CASH EXPENSES</h4>`; stats.cExpList.forEach(ex => { html += `<div class="exp-row"><span>${ex.particulars}</span><strong>₹${fmtINR(ex.amount)}</strong></div>`; }); html += `<div class="exp-subtotal"><span>TOTAL CASH EXPENSES</span><span>₹${fmtINR(stats.cashExp)}</span></div>`; }
+       if(stats.bExpList.length > 0) { html += `<h4 style="color:#2196F3; font-size:12px; margin:10px 0 10px 0;">BANK EXPENSES</h4>`; stats.bExpList.forEach(ex => { html += `<div class="exp-row"><span>${ex.particulars}</span><strong>₹${fmtINR(ex.amount)}</strong></div>`; }); html += `<div class="exp-subtotal bank"><span>TOTAL BANK EXPENSES</span><span>₹${fmtINR(stats.bankExp)}</span></div>`; }
+       html += `<div class="exp-grand"><span>OVERALL TOTAL EXPENSES</span><span>₹${fmtINR(allTotal)}</span></div></div>`;
+    }
+    document.getElementById('d-expenses-container').innerHTML = html;
+  }
+
+  function renderBalancesDashboard() {
+    let isoDate = document.getElementById('dashBalancesDate').value || currentIsoDate; let stats = getDayStats(isoDate);
+
+    document.getElementById('d-op-cash').innerText = "₹" + fmtINR(stats.openTotalCash); document.getElementById('d-cl-cash').innerText = stats.hasClosingCashEntry ? "₹" + fmtINR(stats.todayTotalClosingCash) : "Pending..."; document.getElementById('d-reserve').innerText = "₹" + fmtINR(stats.currentFloat);
+    let cashOtherIncRow = document.getElementById('row-cash-other-inc'); if (stats.cOtherInc > 0) { cashOtherIncRow.style.display = 'flex'; document.getElementById('d-cash-other-inc').innerText = "₹" + fmtINR(stats.cOtherInc); } else { cashOtherIncRow.style.display = 'none'; }
+    let cashDiffBox = document.getElementById('d-cash-diff-box'); cashDiffBox.style.display = stats.hasClosingCashEntry ? 'flex' : 'none'; let cashLabel = document.getElementById('d-cash-diff-label'); let cashVal = document.getElementById('d-cash-diff-val');
+    if(stats.cashDiff >= 0) { cashLabel.innerText = "Change in Cash:"; cashVal.innerText = "+ ₹" + fmtINR(stats.cashDiff); cashVal.style.color = "#4CAF50"; } else { cashLabel.innerText = "Change in Cash:"; cashVal.innerText = "- ₹" + fmtINR(Math.abs(stats.cashDiff)); cashVal.style.color = "#F44336"; }
+    
+    document.getElementById('d-op-bank').innerText = "₹" + fmtINR(stats.openTotalBank); document.getElementById('d-cl-bank').innerText = stats.hasClosingBankEntry ? "₹" + fmtINR(stats.todayClosingBank) : "Pending...";
+    let bankOtherIncRow = document.getElementById('row-bank-other-inc'); if (stats.bOtherInc > 0) { bankOtherIncRow.style.display = 'flex'; document.getElementById('d-bank-other-inc').innerText = "₹" + fmtINR(stats.bOtherInc); } else { bankOtherIncRow.style.display = 'none'; }
+    let bankDiffBox = document.getElementById('d-bank-diff-box'); bankDiffBox.style.display = stats.hasClosingBankEntry ? 'flex' : 'none'; let bankLabel = document.getElementById('d-bank-diff-label'); let bankVal = document.getElementById('d-bank-diff-val');
+    if(stats.bankDiff >= 0) { bankLabel.innerText = "Change in Bank:"; bankVal.innerText = "+ ₹" + fmtINR(stats.bankDiff); bankVal.style.color = "#4CAF50"; } else { bankLabel.innerText = "Change in Bank:"; bankVal.innerText = "- ₹" + fmtINR(Math.abs(stats.bankDiff)); bankVal.style.color = "#F44336"; }
+
+    document.getElementById('d-tr-b2c').innerText = "₹" + fmtINR(stats.b2c); document.getElementById('d-tr-c2b').innerText = "₹" + fmtINR(stats.c2b); document.getElementById('d-cap-inv').innerText = "₹" + fmtINR(stats.bCapitalInv); document.getElementById('d-cap-ret').innerText = "₹" + fmtINR(stats.bCapRet);
+
+    let totalInv = 0, totalRet = 0;
+    for (let d of sortedAppDates) { if (d > isoDate) break; let rows = appData.byDate[d] || []; for (let r of rows) { if (r.account === "BANK") { if (r.particulars === "CAPITAL INVESTMENT") totalInv += parseFloat(r.amount) || 0; if (r.particulars === "CAPITAL RETURNED") totalRet += parseFloat(r.amount) || 0; } } }
+    let netInv = totalInv - totalRet; if (netInv < 0) netInv = 0; document.getElementById('d-cum-inv').innerText = "₹" + fmtINR(totalInv); document.getElementById('d-cum-ret').innerText = "₹" + fmtINR(totalRet); document.getElementById('d-net-inv').innerText = "₹" + fmtINR(netInv);
+  }
+
+  function renderStatsDashboard() {
+    let sIso = document.getElementById('dashStartDate').value; 
+    let eIso = document.getElementById('dashEndDate').value;
+    let allDates = Object.keys(appData.byDate).filter(d => d >= sIso && d <= eIso); 
+    
+    let cs = [], cp = [], ts = [], np = [];
+    let workingDays = allDates.filter(d => getDayStats(d).hasClosingCashEntry).length;
+
+    // Dynamically inject Working Days into the console UI
+    let wdDiv = document.getElementById('ui-working-days');
+    if(!wdDiv) {
+        wdDiv = document.createElement('div');
+        wdDiv.id = 'ui-working-days';
+        wdDiv.style.cssText = 'background: rgba(76, 175, 80, 0.1); border: 1px dashed #4CAF50; color: #4CAF50; padding: 12px; border-radius: 6px; text-align: center; margin-bottom: 15px; font-weight: bold; font-size: 15px; letter-spacing: 1px;';
+        let statsContainer = document.getElementById('dash-sec-stats');
+        statsContainer.insertBefore(wdDiv, statsContainer.children[1]);
+    }
+    wdDiv.innerText = `TOTAL WORKING DAYS IN PERIOD: ${workingDays}`;
+
+    allDates.forEach(d => { 
+        let stats = getDayStats(d); 
+        if(stats.hasClosingCashEntry) { cs.push(stats.cashSale); ts.push(stats.totalSale); }
+        if(stats.hasClosingCashEntry || stats.hasClosingBankEntry || stats.cashExp > 0 || stats.bankExp > 0 || stats.cOtherInc > 0 || stats.bOtherInc > 0) {
+            cp.push(stats.cashProfit); np.push(stats.netProfit);
+        }
+    });
+
+    const setStats = (arr, prefix) => { 
+        let avg=0, max=0, min=0; 
+        if(arr.length > 0) { avg = arr.reduce((a,b)=>a+b,0)/arr.length; max = Math.max(...arr); min = Math.min(...arr); } 
+        document.getElementById(`${prefix}-avg`).innerText = "₹" + fmtINR(avg); 
+        document.getElementById(`${prefix}-max`).innerText = "₹" + fmtINR(max); 
+        document.getElementById(`${prefix}-min`).innerText = "₹" + fmtINR(min); 
+    };
+
+    setStats(cs, "st-cs"); setStats(cp, "st-cp"); setStats(ts, "st-ts"); setStats(np, "st-np");
+  }
+
+  function getPendingChanges() {
+    let dateVal = document.getElementById('dateField').value; let entries = [];
+    
+    const checkAndPushBalance = (id, acc, part) => { let curr = parseFloat(document.getElementById(id).value) || 0; let past = parseFloat(loadedPastExpenses[id]) || 0; if (curr !== past && (curr > 0 || past > 0)) { entries.push({ date: dateVal, account: acc, particulars: part, amount: curr, date2: "", note500: "", note200: "", note100: "", note50: "", note20: "", note10: "", coin20: "", coin10: "", coin5: "", coin2: "", coin1: "" }); } };
+    checkAndPushBalance('reserveIn', 'CASH', 'CLOSING FLOAT'); checkAndPushBalance('bankInAmount', 'BANK', 'CLOSING BANK BALANCE');
+
+    let cashChanged = false;
+    ['note500', 'note200', 'note100', 'note50', 'note20', 'note10', 'coin20', 'coin10', 'coin5', 'coin2', 'coin1'].forEach(d => { if ((parseInt(document.getElementById(d).value) || 0) !== (parseInt(loadedPastExpenses[d]) || 0)) cashChanged = true; });
+    if (cashChanged) { let baseCashIn = draftData.cashInTotal - draftData.cashInReserve - draftData.cashInOther; entries.push({ date: dateVal, account: "CASH", particulars: "CLOSING CASH", amount: baseCashIn, date2: dateVal, denomDate: dateVal, note500: draftData.cashInNotes['500'] || "", note200: draftData.cashInNotes['200'] || "", note100: draftData.cashInNotes['100'] || "", note50: draftData.cashInNotes['50'] || "", note20: draftData.cashInNotes['20'] || "", note10: draftData.cashInNotes['10'] || "", coin20: draftData.cashInCoins['20'] || "", coin10: draftData.cashInCoins['10'] || "", coin5: draftData.cashInCoins['5'] || "", coin2: draftData.cashInCoins['2'] || "", coin1: draftData.cashInCoins['1'] || "" }); }
+
+    const checkAndPushSum = (id, acc, part) => { let curr = parseFloat(document.getElementById(id).value) || 0; let past = parseFloat(loadedPastExpenses[id]) || 0; let diff = curr - past; if (diff !== 0) { entries.push({ date: dateVal, account: acc, particulars: part, amount: diff, date2: "", note500: "", note200: "", note100: "", note50: "", note20: "", note10: "", coin20: "", coin10: "", coin5: "", coin2: "", coin1: "" }); } };
+
+    checkAndPushSum('c_otherIncome', 'CASH', 'OTHER INCOME'); checkAndPushSum('b_otherIncome', 'BANK', 'OTHER INCOME'); checkAndPushSum('b_capitalInv', 'BANK', 'CAPITAL INVESTMENT'); checkAndPushSum('b_capitalRet', 'BANK', 'CAPITAL RETURNED');
+
+    draftData.cashOut.forEach(item => {
+        let pastVal = parseFloat(loadedPastExpenses[item.id]) || 0;
+        let diff = item.amount - pastVal;
+        if (diff !== 0) { entries.push({ date: dateVal, account: "CASH", particulars: item.name, amount: diff, date2: "", note500: "", note200: "", note100: "", note50: "", note20: "", note10: "", coin20: "", coin10: "", coin5: "", coin2: "", coin1: "" }); }
+    });
+
+    draftData.bankOut.forEach(item => {
+        let pastVal = parseFloat(loadedPastExpenses[item.id]) || 0;
+        let diff = item.amount - pastVal;
+        if (diff !== 0) { entries.push({ date: dateVal, account: "BANK", particulars: item.name, amount: diff, date2: "", note500: "", note200: "", note100: "", note50: "", note20: "", note10: "", coin20: "", coin10: "", coin5: "", coin2: "", coin1: "" }); }
+    });
+
+    return entries;
+  }
+
+  function resetToToday() {
+      document.querySelectorAll('.calc-input').forEach(input => input.value = ""); calculateCashIn();
+      draftData = { cashInTotal: 0, cashInReserve: 0, cashInOther: 0, cashInNotes: {}, cashInCoins: {}, bankInTotal: 0, bankInOther: 0, bankInCapRet: 0, bankOutCapital: 0, cashOut: [], bankOut: [] }; localStorage.removeItem('sankar_inputs'); localStorage.removeItem('sankar_date');
+      document.getElementById('accountType').value = 'HAND'; changeTheme(); toggleViews('input');
+      let dateField = document.getElementById('dateField'); dateField.value = currentIsoDate; authorizedInputDate = currentIsoDate; executeDateChange(dateField, currentIsoDate); 
+      document.getElementById('finalSubmitBtn').disabled = false;
+  }
+
+  function renderSummary() {
+    const container = document.getElementById('summaryContent'); let html = ""; let hasData = false; let totalCashOut = 0; let totalBankOut = 0;
+    if (draftData.cashInTotal > 0 || draftData.cashInOther > 0) {
+      hasData = true; html += `<div class="summary-section-title" style="color: #FF9800;">CASH IN HAND</div>`;
+      for (const [denom, qty] of Object.entries(draftData.cashInNotes)) { let rowTotal = parseInt(denom) * qty; html += `<div class="summary-row cash" onclick="editSection('HAND', 'in')"><span class="label acct-format"><span class="currency-sym">₹</span><span class="denom-val">${denom}</span><span class="x-mark">x</span><span class="qty-val">${qty}</span></span><span class="value"><span class="row-total">₹ ${fmtINR(rowTotal)}</span><span class="edit-icon">✎</span></span></div>`; }
+      for (const [denom, qty] of Object.entries(draftData.cashInCoins)) { let rowTotal = parseInt(denom) * qty; html += `<div class="summary-row cash" onclick="editSection('HAND', 'in')"><span class="label acct-format"><span class="currency-sym">₹</span><span class="denom-val">${denom}</span><span class="x-mark">x</span><span class="qty-val">${qty}</span></span><span class="value"><span class="row-total">₹ ${fmtINR(rowTotal)}</span><span class="edit-icon">✎</span></span></div>`; }
+      if (draftData.cashInReserve > 0) { html += `<div class="summary-row cash" onclick="editSection('HAND', 'in')"><span class="label">CLOSING FLOAT</span><span class="value">₹ ${fmtINR(draftData.cashInReserve)} <span class="edit-icon">✎</span></span></div>`; }
+      if (draftData.cashInOther > 0) { html += `<div class="summary-row cash" onclick="editSection('HAND', 'in')"><span class="label">OTHER INCOME</span><span class="value">₹ ${fmtINR(draftData.cashInOther)} <span class="edit-icon">✎</span></span></div>`; }
+      html += `<div class="summary-row cash" onclick="editSection('HAND', 'in')" style="background: rgba(255,152,0,0.1); border-color: #FF9800;"><span class="label">TOTAL CLOSING BALANCE</span><span class="value" style="color: #FF9800;">₹ ${fmtINR(draftData.cashInTotal)} <span class="edit-icon">✎</span></span></div>`;
+    }
+
+    if (draftData.cashOut.length > 0) {
+      hasData = true; let cashExpenses = draftData.cashOut.filter(i => !['BANK TRANSFER'].includes(i.name)); let cashTransfers = draftData.cashOut.filter(i => ['BANK TRANSFER'].includes(i.name)); totalCashOut = cashExpenses.reduce((sum, item) => sum + item.amount, 0);
+      if (cashExpenses.length > 0) { html += `<div class="summary-section-title" style="color: #FF9800;">CASH EXPENSES (Total: ₹ ${fmtINR(totalCashOut)})</div>`; cashExpenses.forEach(item => { html += `<div class="summary-row cash" onclick="editSection('HAND', 'out')"><span class="label">${item.name}</span><span class="value">₹ ${fmtINR(item.amount)} <span class="edit-icon">✎</span></span></div>`; }); }
+      if (cashTransfers.length > 0) { html += `<div class="summary-section-title" style="color: #FF9800; border-bottom: 1px dashed #444;">CASH TRANSFERS</div>`; cashTransfers.forEach(item => { html += `<div class="summary-row cash" onclick="editSection('HAND', 'out')" style="border-left-color: #777;"><span class="label">${item.name}</span><span class="value">₹ ${fmtINR(item.amount)} <span class="edit-icon">✎</span></span></div>`; }); }
+    }
+
+    if (draftData.bankInTotal > 0 || draftData.bankInOther > 0 || draftData.bankInCapRet > 0) {
+      hasData = true; html += `<div class="summary-section-title" style="color: #2196F3;">CASH AT BANK (IN)</div>`;
+      if (draftData.bankInTotal > 0) { html += `<div class="summary-row bank" onclick="editSection('BANK', 'in')"><span class="label">CLOSING BALANCE</span><span class="value">₹ ${fmtINR(draftData.bankInTotal)} <span class="edit-icon">✎</span></span></div>`; }
+      if (draftData.bankInCapRet > 0) { html += `<div class="summary-row bank" onclick="editSection('BANK', 'in')"><span class="label">CAPITAL RETURNED</span><span class="value">₹ ${fmtINR(draftData.bankInCapRet)} <span class="edit-icon">✎</span></span></div>`; }
+      if (draftData.bankInOther > 0) { html += `<div class="summary-row bank" onclick="editSection('BANK', 'in')"><span class="label">OTHER INCOME</span><span class="value">₹ ${fmtINR(draftData.bankInOther)} <span class="edit-icon">✎</span></span></div>`; }
+    }
+
+    if (draftData.bankOut.length > 0 || draftData.bankOutCapital > 0) {
+      hasData = true; let bankExpenses = draftData.bankOut.filter(i => i.name !== 'BANK TO CASH TRANSFER'); let bankTransfers = draftData.bankOut.filter(i => i.name === 'BANK TO CASH TRANSFER'); totalBankOut = bankExpenses.reduce((sum, item) => sum + item.amount, 0);
+      if (bankExpenses.length > 0) { html += `<div class="summary-section-title" style="color: #2196F3;">BANK EXPENSES (Total: ₹ ${fmtINR(totalBankOut)})</div>`; bankExpenses.forEach(item => { html += `<div class="summary-row bank" onclick="editSection('BANK', 'out')"><span class="label">${item.name}</span><span class="value">₹ ${fmtINR(item.amount)} <span class="edit-icon">✎</span></span></div>`; }); }
+      if (bankTransfers.length > 0 || draftData.bankOutCapital > 0) {
+        html += `<div class="summary-section-title" style="color: #2196F3; border-bottom: 1px dashed #444;">TRANSFERS & INVESTMENTS</div>`;
+        bankTransfers.forEach(item => { html += `<div class="summary-row bank" onclick="editSection('BANK', 'out')" style="border-left-color: #777;"><span class="label">${item.name}</span><span class="value">₹ ${fmtINR(item.amount)} <span class="edit-icon">✎</span></span></div>`; });
+        if (draftData.bankOutCapital > 0) { html += `<div class="summary-row bank" onclick="editSection('BANK', 'out')" style="border-left-color: #4CAF50;"><span class="label">CAPITAL INVESTMENT</span><span class="value">₹ ${fmtINR(draftData.bankOutCapital)} <span class="edit-icon">✎</span></span></div>`; }
+      }
+    }
+
+    let combinedTotal = totalCashOut + totalBankOut;
+    if (combinedTotal > 0) { html += `<div class="summary-section-title" style="color: #F44336; margin-top: 25px;">OVERALL EXPENSES</div><div class="summary-row" style="background: rgba(244, 67, 54, 0.1); border-left-color: #F44336; cursor: default;"><span class="label">COMBINED TOTAL EXPENSES</span><span class="value" style="color: #F44336;">₹ ${fmtINR(combinedTotal)}</span></div>`; }
+
+    if (!hasData) { html = `<div class="no-data">No data saved yet. Fill out the IN or OUT tabs.</div>`; }
+    container.innerHTML = html; const finalBtn = document.getElementById('finalSubmitBtn'); finalBtn.disabled = false;
+    let pending = getPendingChanges();
+    if (!hasData && Object.keys(loadedPastExpenses).length === 0) { finalBtn.style.display = "none"; } else {
+        finalBtn.style.display = "block";
+        if (pending.length === 0) { finalBtn.innerText = "NO CHANGES - RETURN TO TODAY"; finalBtn.style.backgroundColor = "#555"; finalBtn.onclick = resetToToday; } else { finalBtn.innerText = `SUBMIT DATA (${pending.length} edits)`; finalBtn.style.backgroundColor = "#E53935"; finalBtn.onclick = finalSubmitToSheets; }
+    }
+  }
+
+  function finalSubmitToSheets() {
+    let entriesToSend = getPendingChanges(); 
+    const finalBtn = document.getElementById('finalSubmitBtn');
+
+    if (entriesToSend.length > 0) {
+        let queue = safeParse('sankar_sync_queue', []); 
+        queue.push(entriesToSend); 
+        localStorage.setItem('sankar_sync_queue', JSON.stringify(queue));
+        
+        entriesToSend.forEach(entry => { 
+            let isBalance = ["CLOSING CASH", "CLOSING FLOAT", "RESERVE IN", "CLOSING BANK BALANCE"].includes(entry.particulars);
+            
+            if (isBalance) {
+                // Update local balances in place
+                let existingIdx = appData.stsj.findIndex(r => r.date === entry.date && r.account === entry.account && r.particulars === entry.particulars);
+                if (existingIdx !== -1) appData.stsj[existingIdx] = entry; else appData.stsj.push(entry);
+
+                if (!appData.byDate[entry.date]) appData.byDate[entry.date] = [];
+                let dIdx = appData.byDate[entry.date].findIndex(r => r.account === entry.account && r.particulars === entry.particulars);
+                if (dIdx !== -1) appData.byDate[entry.date][dIdx] = entry; else appData.byDate[entry.date].push(entry);
+            } else {
+                // Append expense/income differences to local memory
+                appData.stsj.push(entry); 
+                if (!appData.byDate[entry.date]) appData.byDate[entry.date] = []; 
+                appData.byDate[entry.date].push(entry); 
+            }
+        });
+        
+        sortedAppDates = Object.keys(appData.byDate).sort(); 
+        computeBalances(); 
+        dayStatsCache = {}; 
+        localStorage.setItem('sankar_appData', JSON.stringify(appData.stsj));
+    }
+    finalBtn.disabled = true; finalBtn.innerText = "SAVING LOCALLY...";
+    setTimeout(() => { resetToToday(); triggerAutoSaveIndicator(entriesToSend.length > 0 ? "⏳ Syncing to cloud..." : "✓ Returned to today."); if (entriesToSend.length > 0) processSyncQueue(); }, 300);
+  }
+
+// NOTE: First copies of requestPDFDownload and requestEmailStatement were removed
+// (they were duplicates without .catch() handlers). The correct versions are at the bottom of this file.
+
+ async function buildNativePDF(action, autoEmails = null, autoStartIso = null, autoEndIso = null) {
+      let btn = null;
+      if (action === 'DOWNLOAD') btn = document.getElementById('btn-download-stmt');
+      if (action === 'EMAIL') btn = document.getElementById('btn-email-stmt');
+      const originalText = btn ? btn.innerText : "";
+      if(btn) { btn.innerText = "⏳ WAKING SERVER (~20s)..."; btn.disabled = true; }
+
+      try {
+          let sIso = autoStartIso || document.getElementById('plStart').value || firstDayIso; 
+          let eIso = autoEndIso || document.getElementById('plEnd').value || currentIsoDate;
+          if (!autoStartIso) {
+              if (currentPlMode === 'TODAY') { sIso = document.getElementById('plDate').value || currentIsoDate; eIso = sIso; } 
+              else if (currentPlMode === 'MONTH') { sIso = firstDayIso; eIso = lastDayIso; }
+          }
+          
+          let allDates = Object.keys(appData.byDate).filter(d => d >= sIso && d <= eIso).sort();
+          let aggStats = getRangeStats(sIso, eIso);
+          let lastDayToQuery = allDates.length > 0 ? allDates[allDates.length - 1] : eIso;
+          let periodEndBalances = getDayStats(lastDayToQuery);
+
+          let rawCSale = [], rawCProfit = [], rawTSale = [], rawNProfit = [];
+          let statCSale = [], statCProfit = [], statTSale = [], statNProfit = [];
+          let tblLedger = [], cashExpensesList = [], bankExpensesArr = [];
+          let cashFlowArr = [], bankFlowArr = [];
+          let chartLabels = [];
+          
+          let combinedExpMap = {};
+          Object.keys(aggStats.cExpMap).forEach(k => combinedExpMap[k] = (combinedExpMap[k] || 0) + aggStats.cExpMap[k]);
+          Object.keys(aggStats.bExpMap).forEach(k => combinedExpMap[k] = (combinedExpMap[k] || 0) + aggStats.bExpMap[k]);
+
+          let workingDays = allDates.filter(d => getDayStats(d).hasClosingCashEntry).length;
+
+          // Variables to track Perfect Balancing
+          let periodTotalCashIn = 0, periodTotalCashOut = 0;
+          let periodTotalBankIn = 0, periodTotalBankOut = 0;
+
+          allDates.forEach(d => {
+              let st = getDayStats(d);
+              let dispD = toDDMMYYYY(d);
+              
+              if(st.hasClosingCashEntry || st.hasClosingBankEntry) {
+                  chartLabels.push(dispD.substring(0, 5));
+                  rawCSale.push(st.hasClosingCashEntry ? st.cashSale : null);
+                  rawCProfit.push(st.hasClosingCashEntry ? st.cashProfit : null);
+                  rawTSale.push(st.totalSale); rawNProfit.push(st.netProfit);
+                  tblLedger.push({ date: dispD, cashSale: fmtINR(st.cashSale), cashProfit: fmtINR(st.cashProfit), totalSale: fmtINR(st.totalSale), netProfit: fmtINR(st.netProfit) });
+              }
+              
+              if(st.hasClosingCashEntry) { statCSale.push(st.cashSale); statTSale.push(st.totalSale); }
+              if(st.hasClosingCashEntry || st.hasClosingBankEntry || st.cashExp > 0 || st.bankExp > 0 || st.cOtherInc > 0 || st.bOtherInc > 0) {
+                  statCProfit.push(st.cashProfit); statNProfit.push(st.netProfit);
+              }
+
+              st.cExpList.forEach(ex => cashExpensesList.push({ date: dispD, particulars: ex.particulars, amount: fmtINR(ex.amount) }));
+              st.bExpList.forEach(ex => bankExpensesArr.push({ date: dispD, particulars: ex.particulars, amount: fmtINR(ex.amount) }));
+              
+              // PERFECT CASH BALANCING LOGIC
+              let cOpen = st.openTotalCash;
+              let cClose = st.hasClosingCashEntry ? st.todayTotalClosingCash : cOpen; 
+              let cOut = st.cashExp + st.c2b;
+              let cIn = (cClose - cOpen) + cOut; 
+              periodTotalCashOut += cOut;
+              periodTotalCashIn += cIn;
+              if(st.hasClosingCashEntry) cashFlowArr.push({ date: dispD, open: fmtINR(cOpen), in: fmtINR(cIn), out: fmtINR(cOut), close: fmtINR(cClose) });
+
+              // PERFECT BANK BALANCING LOGIC (Fixed for Capital Investments)
+              let bOpen = st.openTotalBank;
+              let bClose = st.hasClosingBankEntry ? st.todayClosingBank : bOpen;
+              let bOut = st.bankExp + st.b2c + st.bCapitalInv;
+              let bIn = (bClose - bOpen) + bOut;
+              periodTotalBankOut += bOut;
+              periodTotalBankIn += bIn;
+              if(st.hasClosingBankEntry) bankFlowArr.push({ date: dispD, open: fmtINR(bOpen), in: fmtINR(bIn), out: fmtINR(bOut), close: fmtINR(bClose) });
+          });
+
+          let cSma = calcSMArray(rawCSale, 3);
+          let tSma = calcSMArray(rawTSale, 3);
+          let expTotalForPie = Object.values(combinedExpMap).reduce((a,b)=>a+b, 0);
+          
+          let pieLabels = Object.keys(combinedExpMap).map(k => {
+              let pct = expTotalForPie > 0 ? Math.round((combinedExpMap[k]/expTotalForPie)*100) : 0;
+              return `${k} (${pct}%)`;
+          });
+
+          // ---- NEW CATEGORY SUMMARY AGGREGATION ----
+          let categorySummary = {};
+          Object.keys(aggStats.cExpMap).forEach(k => {
+              if (!categorySummary[k]) categorySummary[k] = { cash: 0, bank: 0, total: 0 };
+              categorySummary[k].cash += aggStats.cExpMap[k];
+              categorySummary[k].total += aggStats.cExpMap[k];
+          });
+          Object.keys(aggStats.bExpMap).forEach(k => {
+              if (!categorySummary[k]) categorySummary[k] = { cash: 0, bank: 0, total: 0 };
+              categorySummary[k].bank += aggStats.bExpMap[k];
+              categorySummary[k].total += aggStats.bExpMap[k];
+          });
+
+          let catSummaryArray = Object.keys(categorySummary).map(k => {
+              let pct = expTotalForPie > 0 ? ((categorySummary[k].total / expTotalForPie) * 100).toFixed(2) : "0.00";
+              return { category: k, cash: fmtINR(categorySummary[k].cash), bank: fmtINR(categorySummary[k].bank), total: fmtINR(categorySummary[k].total), pct: pct };
+          });
+          catSummaryArray.sort((a, b) => parseFloat(b.total.replace(/,/g, '')) - parseFloat(a.total.replace(/,/g, '')));
+
+          // --- ECHARTS INITIALIZATION ---
+          let cashChart, totalChart, pieChart;
+          try {
+              cashChart = echarts.init(document.getElementById('pdfChartCash'), null, {renderer: 'canvas'});
+              cashChart.setOption({
+                  animation: false, // <-- অ্যানিমেশন বন্ধ করা হলো
+                  backgroundColor: '#ffffff',
+                  title: { text: 'Day-Wise Cash Sale & Profit', textStyle: { fontSize: 16, fontWeight: 'bold' } },
+                  legend: { top: 25 },
+                  grid: { top: 70, bottom: 60, left: 50, right: 20 },
+                  xAxis: { 
+                      type: 'category', 
+                      data: chartLabels, 
+                      axisLabel: { color: '#000', fontWeight: 'bold', fontSize: 10, interval: 0, rotate: 60 } 
+                  },
+                  yAxis: { type: 'value', axisLabel: { color: '#000', fontWeight: 'bold' } },
+                  series: [
+                      { name: 'Cash Profit', type: 'line', data: rawCProfit, smooth: true, itemStyle: { color: '#E91E63' }, lineStyle: { width: 3 }, symbolSize: 6 },
+                      { name: '3-Day SMA', type: 'line', data: cSma, smooth: true, itemStyle: { color: '#9C27B0' }, lineStyle: { width: 2, type: 'dashed' }, symbol: 'none' },
+                      { name: 'Cash Sale', type: 'bar', data: rawCSale, itemStyle: { color: '#FF9800' } }
+                  ]
+              });
+
+              totalChart = echarts.init(document.getElementById('pdfChartTotal'), null, {renderer: 'canvas'});
+              totalChart.setOption({
+                  animation: false, // <-- অ্যানিমেশন বন্ধ করা হলো
+                  backgroundColor: '#ffffff',
+                  title: { text: 'Day-Wise Total Sale & Profit', textStyle: { fontSize: 16, fontWeight: 'bold' } },
+                  legend: { top: 25 },
+                  grid: { top: 70, bottom: 60, left: 50, right: 20 },
+                  xAxis: { 
+                      type: 'category', 
+                      data: chartLabels, 
+                      axisLabel: { color: '#000', fontWeight: 'bold', fontSize: 10, interval: 0, rotate: 60 } 
+                  },
+                  yAxis: { type: 'value', axisLabel: { color: '#000', fontWeight: 'bold' } },
+                  series: [
+                      { name: 'Total Profit', type: 'line', data: rawNProfit, smooth: true, itemStyle: { color: '#4CAF50' }, lineStyle: { width: 3 }, symbolSize: 6 },
+                      { name: '3-Day SMA', type: 'line', data: tSma, smooth: true, itemStyle: { color: '#2196F3' }, lineStyle: { width: 2, type: 'dashed' }, symbol: 'none' },
+                      { name: 'Total Sale', type: 'bar', data: rawTSale, itemStyle: { color: '#2196F3' } }
+                  ]
+              });
+
+              pieChart = echarts.init(document.getElementById('pdfChartExpensePie'), null, {renderer: 'canvas'});
+              let pieData = Object.keys(combinedExpMap).map(k => ({ name: k, value: combinedExpMap[k] }));
+              pieChart.setOption({
+                  animation: false,
+                  backgroundColor: '#ffffff',
+                  legend: { show: false },
+                  color: ['#FFC107', '#42A5F5', '#81C784', '#FFCA28', '#AB47BC', '#FF7043', '#8D6E63'],
+                  series: [{
+                      type: 'pie', 
+                      radius: '55%', // Pie-ta ektu choto kora holo jate lekha gulo bhalo jaiga pay
+                      center: ['50%', '50%'],
+                      data: pieData,
+                      avoidLabelOverlap: true, // Overlap avoid korar main command
+                      label: { 
+                          show: true,
+                          position: 'outside',
+                          formatter: (params) => {
+                const val = Number(params.value).toFixed(2);
+                const percent = Number(params.percent).toFixed(2);
+                return `${params.name}\nRs. ${val} (${percent}%)`;
+                              },
+                          fontWeight: 'bold', 
+                          color: '#000', 
+                          fontSize: 10,
+                          // 'edge' or 'labelLine' forces the labels to stick to the visual guideline
+            alignTo: 'labelLine',
+            // Ensures text on the left side is left-aligned and right side is right-aligned
+            textAlign: 'auto' 
+        },
+                    
+                      labelLine: { 
+                          show: true, 
+                          length: 30, // Line bariye lekha gulo chart theke ektu dure sora holo
+                          length2: 25, 
+                          smooth: true 
+                      },
+                      labelLayout: {
+                          moveOverlap: 'shiftY' // overlapping thakle text vertical shift hoye jabe otomatik
+                      },
+                      itemStyle: { shadowBlur: 10, shadowOffsetX: 5, shadowOffsetY: 5, shadowColor: 'rgba(0, 0, 0, 0.4)' }
+                  }]
+              });
+          } catch(e) { console.error("ECharts Warning:", e); }
+
+          // --- ORIGINAL QR CODE LOGIC ---
+          try {
+              document.getElementById('pdfQrCode').innerHTML = ""; 
+              let qrSummary = `SANKAR TEA SHOP\nReport: ${sIso} to ${eIso}\nWorking Days: ${workingDays}\nTotal Sale: Rs.${fmtINR(aggStats.totalSale)}\nNet Profit: Rs.${fmtINR(aggStats.netProfit)}\nCash Exp: Rs.${fmtINR(aggStats.cashExp)}\nBank Exp: Rs.${fmtINR(aggStats.bankExp)}`;
+              new QRCode(document.getElementById('pdfQrCode'), {
+                  text: qrSummary, width: 150, height: 150, correctLevel: QRCode.CorrectLevel.M, colorDark : "#000000", colorLight : "#ffffff"
+              });
+          } catch(e) { console.error("QR Code Warning:", e); }
+
+         // REDUCED TO 100 MS
+          await new Promise(r => setTimeout(r, 100));
+
+          // --- EXTRACT IMAGES FOR PDF (UPDATED FOR PNG AND RESOLUTION 2) ---
+// Change type from 'jpeg' to 'png'
+// Change pixelRatio from 1.0 to 2.0
+const imgCash = cashChart ? cashChart.getDataURL({ type: 'png', pixelRatio: 2.0, backgroundColor: '#fff' }) : "";
+const imgTotal = totalChart ? totalChart.getDataURL({ type: 'png', pixelRatio: 2.0, backgroundColor: '#fff' }) : "";
+const imgPie = pieChart ? pieChart.getDataURL({ type: 'png', pixelRatio: 2.0, backgroundColor: '#fff' }) : "";
+
+// Update QR Code to use PNG
+const qrCanvas = document.querySelector('#pdfQrCode canvas');
+const imgQR = qrCanvas ? qrCanvas.toDataURL('image/png', 0.8) : "";
+
+          // --- CALCULATE ANALYTICS STATS ---
+          let sCS = calcStats(statCSale), sCP = calcStats(statCProfit);
+          let sTS = calcStats(statTSale), sNP = calcStats(statNProfit);
+          
+          let totalInv = 0, totalRet = 0;
+          for (let d of sortedAppDates) { if (d > eIso) break; let rows = appData.byDate[d] || []; for (let r of rows) { if (r.account === "BANK") { if (r.particulars === "CAPITAL INVESTMENT") totalInv += parseFloat(r.amount) || 0; if (r.particulars === "CAPITAL RETURNED") totalRet += parseFloat(r.amount) || 0; } } }
+          
+          let periodOpenCash = allDates.length > 0 ? getDayStats(allDates[0]).openTotalCash : 0;
+          let periodOpenBank = allDates.length > 0 ? getDayStats(allDates[0]).openTotalBank : 0;
+
+          // --- PREPARE PAYLOAD FOR SERVER ---
+          const payload = {
+              action: 'DOWNLOAD',
+              isSingleDate: sIso === eIso,
+              dateRange: sIso === eIso ? toDDMMYYYY(sIso) : `${toDDMMYYYY(sIso)} to ${toDDMMYYYY(eIso)}`,
+              endDateProcessed: toDDMMYYYY(lastDayToQuery),
+              qrCode: imgQR,
+              balances: { cash: fmtINR(periodEndBalances.todayTotalClosingCash), float: fmtINR(periodEndBalances.currentFloat), bank: fmtINR(periodEndBalances.todayClosingBank) },
+              flows: {
+                  period: {
+                      cashOpen: fmtINR(periodOpenCash), cashIn: fmtINR(periodTotalCashIn), cashOut: fmtINR(periodTotalCashOut), cashClose: fmtINR(periodEndBalances.todayTotalClosingCash),
+                      bankOpen: fmtINR(periodOpenBank), bankIn: fmtINR(periodTotalBankIn), bankOut: fmtINR(periodTotalBankOut), bankClose: fmtINR(periodEndBalances.todayClosingBank)
+                  },
+                  cashLedger: cashFlowArr, bankLedger: bankFlowArr
+              },
+              stats: {
+                  workingDays: workingDays,
+                  cashSale: fmtINR(aggStats.cashSale), cashProfit: fmtINR(aggStats.cashProfit), totalSale: fmtINR(aggStats.totalSale),
+                  otherIncome: fmtINR(aggStats.cOtherInc + aggStats.bOtherInc), netProfit: fmtINR(aggStats.netProfit),
+                  cashExp: fmtINR(aggStats.cashExp), bankExp: fmtINR(aggStats.bankExp), totalExpenses: fmtINR(aggStats.cashExp + aggStats.bankExp),
+                  activeCapital: fmtINR(Math.max(0, totalInv - totalRet)),
+                  profitMargin: aggStats.totalSale > 0 ? (aggStats.netProfit / aggStats.totalSale * 100).toFixed(1) + '%' : '0%',
+                  avgSale: fmtINR(sTS.mean)
+              },
+              analytics: {
+                  csMax: fmtINR(sCS.max), csMin: fmtINR(sCS.min), csMean: fmtINR(sCS.mean), cpMax: fmtINR(sCP.max), cpMin: fmtINR(sCP.min), cpMean: fmtINR(sCP.mean),
+                  tsMax: fmtINR(sTS.max), tsMin: fmtINR(sTS.min), tsMean: fmtINR(sTS.mean), npMax: fmtINR(sNP.max), npMin: fmtINR(sNP.min), npMean: fmtINR(sNP.mean)
+              },
+              charts: { cashGraph: imgCash, totalGraph: imgTotal, pieGraph: imgPie },
+              ledger: tblLedger, 
+              expenses: { cash: cashExpensesList, bank: bankExpensesArr },
+              expenseSummary: catSummaryArray
+          };
+
+          const response = await fetch("https://sts-pdf-server-1012055640452.asia-south1.run.app/generate-pdf", { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+          if (!response.ok) { const errTxt = await response.text(); throw new Error(`Server Error: ${response.status} - ${errTxt}`); }
+
+          const blob = await response.blob();
+          if (blob.type.includes("json") || blob.type.includes("text/html") || blob.type.includes("text/plain")) throw new Error("Server returned an error page.");
+
+          if (action === 'DOWNLOAD') {
+              btn.innerText = "⏳ DOWNLOADING...";
+              const downloadUrl = window.URL.createObjectURL(blob);
+              const link = document.createElement('a'); link.href = downloadUrl; link.download = `STS_Report_${sIso}_to_${eIso}.pdf`;
+              document.body.appendChild(link); link.click(); document.body.removeChild(link);
+              setTimeout(() => window.URL.revokeObjectURL(downloadUrl), 1000); 
+              
+              // SUCCESS MESSAGE POPUP
+              alert("✅ PDF Statement Downloaded Successfully!");
+          
+          } else if (action === 'EMAIL' || action === 'AUTO_EMAIL') {
+              if (btn) btn.innerText = "⏳ EMAILING PDF...";
+             let targetEmails = autoEmails || safeParse('sankar_email_config').emails;
+              
+              const reader = new FileReader(); reader.readAsDataURL(blob);
+              reader.onloadend = function() {
+                  const base64Raw = reader.result.split(',')[1];
+                  fetch(WEB_APP_URL, {
+                      method: 'POST', headers: { "Content-Type": "text/plain;charset=utf-8" },
+                      body: JSON.stringify({ action: "SEND_ON_DEMAND_STATEMENT", emails: targetEmails, pdfData: base64Raw, date: `${sIso} to ${eIso}` })
+                  }).then(r => r.json()).then(resData => {
+                      if(resData.status === 'success') {
+                          if(action === 'EMAIL') alert("✅ PDF Statement Emailed Successfully to:\n" + targetEmails);
+                      } else if(action !== 'AUTO_EMAIL') { alert("⚠️ Google Error: " + resData.message); }
+                      if(btn && action !== 'AUTO_EMAIL') { btn.innerText = originalText; btn.disabled = false; }
+                  }).catch(err => { 
+                      if(action !== 'AUTO_EMAIL') alert("⚠️ Network Error while sending Email."); 
+                      if(btn && action !== 'AUTO_EMAIL') { btn.innerText = originalText; btn.disabled = false; } 
+                  });
+              }
+              return; 
+          }
+      } catch (err) { 
+          if(action !== 'AUTO_EMAIL') alert("⚠️ Generation Failed:\n" + err.message); 
+      } finally {
+          // SECURITY: Dispose ECharts instances to prevent memory leaks
+          try {
+              if (typeof cashChart !== 'undefined' && cashChart) cashChart.dispose();
+              if (typeof totalChart !== 'undefined' && totalChart) totalChart.dispose();
+              if (typeof pieChart !== 'undefined' && pieChart) pieChart.dispose();
+          } catch(disposeErr) { console.warn("Chart cleanup error:", disposeErr); }
+          if(btn && action !== 'AUTO_EMAIL') { btn.innerText = originalText; btn.disabled = false; } 
+      }
+  }
+// --- 1. REQUIRED MATH FUNCTIONS ---
+function getOrdinal(n) {
+    let s = ["th", "st", "nd", "rd"];
+    let v = n % 100;
+    return n + (s[(v - 20) % 10] || s[v] || s[0]);
+}
+
+function buildCalendarGrid() {
+    let grid = document.getElementById('schDateGrid');
+    if(!grid) return;
+    grid.innerHTML = "";
+    let hiddenInput = document.getElementById('schDateOfMonth');
+    for(let i=1; i<=31; i++) {
+        let div = document.createElement('div');
+        div.className = 'cal-day';
+        div.innerText = i;
+        div.onclick = function() {
+            document.querySelectorAll('.cal-day').forEach(d => d.classList.remove('selected'));
+            this.classList.add('selected');
+            hiddenInput.value = i;
+        };
+        grid.appendChild(div);
+    }
+}
+window.addEventListener('DOMContentLoaded', buildCalendarGrid);
+
+function calcSMArray(arr, window_size) {
+    let result = [];
+    for (let i = 0; i < arr.length; i++) {
+        let sum = 0, count = 0;
+        for (let j = 0; j < window_size; j++) {
+            if (i - j >= 0 && arr[i - j] !== null) {
+                sum += arr[i - j];
+                count++;
+            }
+        }
+        result.push(count > 0 ? (sum / count) : null);
+    }
+    return result;
+}
+
+function calcStats(arr) {
+    let valid = arr.filter(v => v !== null && v !== undefined && !isNaN(v));
+    if (valid.length === 0) return { max: 0, min: 0, mean: 0 };
+    let max = Math.max(...valid);
+    let min = Math.min(...valid);
+    let mean = valid.reduce((a, b) => a + b, 0) / valid.length;
+    return { max, min, mean };
+}
+
+// --- 2. FIXED BUTTON FUNCTIONS ---
+function requestPDFDownload() {
+    buildNativePDF('DOWNLOAD').catch(e => {
+        alert("PDF Generation Error: " + e.message);
+        console.error(e);
+    });
+}
+
+function requestEmailStatement() {
+    let conf = safeParse('sankar_email_config');
+    let targetEmails = conf.emails;
+    
+    if (!targetEmails) {
+        targetEmails = prompt("No default email saved.\n\nEnter email address(es) to send this PDF:");
+        if (!targetEmails) return;
+        if (!validateEmails(targetEmails)) return alert("Invalid email format.");
+        
+        localStorage.setItem('sankar_email_config', JSON.stringify({ emails: targetEmails, freq: 'DAILY' }));
+        alert("Email saved to configuration!");
+    } else {
+        let confirmSend = confirm("Send PDF statement to saved email?\n" + targetEmails + "\n\n(Click Cancel to type a different email)");
+        if (!confirmSend) {
+            let newEmails = prompt("Enter new email address(es):", targetEmails);
+            if (!newEmails) return;
+            if (!validateEmails(newEmails)) return alert("Invalid email format.");
+            targetEmails = newEmails;
+            
+            if (confirm("Update saved email in settings to this new one?")) {
+                localStorage.setItem('sankar_email_config', JSON.stringify({ emails: targetEmails, freq: conf.freq || 'DAILY' }));
+            }
+        }
+    }
+    
+    buildNativePDF('EMAIL', targetEmails).catch(e => {
+        alert("Email Generation Error: " + e.message);
+        console.error(e);
+    });
+}
+</script>
+</body>
+</html>
