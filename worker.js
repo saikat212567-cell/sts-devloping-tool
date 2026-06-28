@@ -143,7 +143,81 @@ export default {
          );
          return new Response(JSON.stringify({ status: "success" }), { headers: jsonHeaders });
       }
+      // --- BIOMETRIC ACTIONS ---
+// ⚠️ এখানে আপনার Google App Script-এর লাইভ লিংক এবং আপনার ইমেইলটা বসিয়ে দিন
+      const APP_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxT2IoAuVTjJiSW4AkWrzQsl4mmIwzendPOX_pkOL4Jv5ohORx8rP03FIjlzxlLlU7J/exec"; 
+      const ADMIN_EMAIL = "dass46206@gmail.com"; 
 
+      // 📩 ১. OTP পাঠানোর API (Cloudflare -> App Script)
+      if (data.action === "SEND_REGISTRATION_OTP") {
+        try {
+            let otp = Math.floor(100000 + Math.random() * 900000).toString(); 
+            
+            await env.DB.prepare(`CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT)`).run();
+            await env.DB.prepare("INSERT INTO settings (key, value) VALUES ('BIO_REG_OTP', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value").bind(otp).run();
+            
+            // Cloudflare নিজে App Script-কে রিকোয়েস্ট পাঠাচ্ছে
+            let emailText = `Your STS App Fingerprint Registration OTP is: ${otp}.\nDo not share this with anyone!`;
+            await fetch(APP_SCRIPT_URL, {
+                method: "POST",
+                body: JSON.stringify({ action: "SEND_ALERT_EMAIL", email: ADMIN_EMAIL, subject: "STS Security OTP", message: emailText })
+            });
+            
+            return new Response(JSON.stringify({ status: "success" }), { headers: jsonHeaders });
+        } catch(e) { return new Response(JSON.stringify({ status: "error", message: e.message }), { headers: jsonHeaders, status: 500 }); }
+      }
+
+      // 🔐 ২. OTP ভেরিফাই ও অ্যালার্ট পাঠানোর API (Cloudflare -> App Script)
+      // 🔐 ২. OTP ভেরিফাই ও অ্যালার্ট পাঠানোর API (Cloudflare -> App Script)
+      if (data.action === "REGISTER_BIOMETRIC") {
+        try {
+            let otpRow = await env.DB.prepare("SELECT value FROM settings WHERE key = 'BIO_REG_OTP'").first();
+            if(!otpRow || otpRow.value !== data.otp) {
+                return new Response(JSON.stringify({ status: "error", message: "Invalid or Expired OTP!" }), { headers: jsonHeaders, status: 401 });
+            }
+
+            await env.DB.prepare("DELETE FROM settings WHERE key = 'BIO_REG_OTP'").run();
+
+            let ip = request.headers.get('CF-Connecting-IP') || 'Unknown IP';
+            let location = (request.cf && request.cf.city ? request.cf.city : '') + ', ' + (request.cf && request.cf.country ? request.cf.country : '');
+            let deviceName = data.device_name || 'Unknown Device'; 
+
+            await env.DB.prepare(`CREATE TABLE IF NOT EXISTS active_devices (id INTEGER PRIMARY KEY AUTOINCREMENT, device_name TEXT, credential_id TEXT, ip_address TEXT, location TEXT, reg_date DATETIME DEFAULT CURRENT_TIMESTAMP)`).run();
+            
+            // 💡 [NEW FIX]: একই নামের (যেমন: POCO F3 GT) কোনো পুরনো এন্ট্রি থাকলে সেটা আগে ডিলিট করে দাও!
+            await env.DB.prepare("DELETE FROM active_devices WHERE device_name = ?").bind(deviceName).run();
+
+            // তারপর নতুন চাবিটা ফ্রেশ করে সেভ করো
+            await env.DB.prepare("INSERT INTO active_devices (device_name, credential_id, ip_address, location) VALUES (?, ?, ?, ?)").bind(deviceName, String(data.credential_id), ip, location).run();
+            
+            // Alert মেইল ফায়ার করা হচ্ছে
+            let alertMsg = `⚠️ SECURITY ALERT: New Device Added to Sankar Tea Shop!\n\n📱 Device: ${deviceName}\n🌐 IP Address: ${ip}\n📍 Location: ${location}\n🕒 Time: ${new Date().toLocaleString()}`;
+            
+            fetch(APP_SCRIPT_URL, {
+                method: "POST",
+                body: JSON.stringify({ action: "SEND_ALERT_EMAIL", email: ADMIN_EMAIL, subject: "⚠️ New Device Registered!", message: alertMsg })
+            }).catch(e => console.log("Alert email failed."));
+
+            return new Response(JSON.stringify({ status: "success" }), { headers: jsonHeaders });
+        } catch(e) { return new Response(JSON.stringify({ status: "error", message: e.message }), { headers: jsonHeaders, status: 500 }); }
+      }
+            // 🔐 ৩. ফিঙ্গারপ্রিন্ট ভেরিফাই করার আপডেটেড API
+      if (data.action === "VERIFY_BIOMETRIC") {
+        try {
+            // চেক করা হচ্ছে ডিভাইসটি নতুন active_devices টেবিলে আছে কি না
+            const row = await env.DB.prepare("SELECT id FROM active_devices WHERE credential_id = ?").bind(data.credential_id).first();
+            
+            if (row) {
+                // ডেটাবেসে মিলে গেলে সাকসেস
+                return new Response(JSON.stringify({ status: "success" }), { headers: jsonHeaders });
+            }
+            
+            // না মিললে হ্যাকার ভেবে কিক-আউট
+            return new Response(JSON.stringify({ status: "error", message: "Access Revoked or Device Not Found!" }), { headers: jsonHeaders, status: 401 });
+        } catch(e) { 
+            return new Response(JSON.stringify({ status: "error", message: e.message }), { headers: jsonHeaders, status: 500 });
+        }
+      }
       if (data.action === "VERIFY_OTP") {
          const savedOtp = await env.STS_DB.get(`OTP_${data.emails}`);
          if (savedOtp === data.otp) {
@@ -204,7 +278,21 @@ export default {
          );
          return new Response(JSON.stringify({ status: "success" }), { headers: jsonHeaders });
       }
+// 📱 ১. ডিভাইস লগ দেখার জন্য API
+      if (data.action === "GET_DEVICES") {
+        try {
+            let res = await env.DB.prepare("SELECT id, device_name, ip_address, location, reg_date FROM active_devices ORDER BY id DESC").all();
+            return new Response(JSON.stringify({ status: "success", devices: res.results }), { headers: jsonHeaders });
+        } catch(e) { return new Response(JSON.stringify({ status: "error" }), { headers: jsonHeaders, status: 500 }); }
+      }
 
+      // 🗑️ ২. ডিভাইস ব্লক/রিমুভ করার API
+      if (data.action === "REVOKE_DEVICE") {
+        try {
+            await env.DB.prepare("DELETE FROM active_devices WHERE id = ?").bind(data.device_id).run();
+            return new Response(JSON.stringify({ status: "success" }), { headers: jsonHeaders });
+        } catch(e) { return new Response(JSON.stringify({ status: "error" }), { headers: jsonHeaders, status: 500 }); }
+      }
       // --- [AUDIT FIX #10]: Reject unknown action values ---
       if (data.action) {
           return new Response(JSON.stringify({ status: "error", message: "Unknown action" }), { headers: jsonHeaders, status: 400 });
