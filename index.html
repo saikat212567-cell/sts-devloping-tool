@@ -17,9 +17,14 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" crossorigin="anonymous" defer></script>
 
 <script>
+    let _lastErrorAlert = 0;
     window.onerror = function(message, source, lineno, colno, error) {
         console.error("App Error:", { message, source, lineno, colno, error });
-        alert("Something went wrong. Please refresh the page and try again.");
+        let now = Date.now();
+        if (now - _lastErrorAlert > 10000) {
+            _lastErrorAlert = now;
+            alert("Something went wrong. Please refresh the page and try again.");
+        }
         return true;
     };
     window.addEventListener('unhandledrejection', function(event) {
@@ -507,6 +512,8 @@
   const lastDayIso = `${yyyy}-${mm}-${String(lastDayOfMonth).padStart(2, '0')}`;
 
   const WEB_APP_URL = "https://sts-proxy.saikat212567.workers.dev/";
+  const STS_API_KEY = "STS-2026-SANKAR-SECURE-KEY-x9k2m"; // Must match Cloudflare Worker secret
+  const authHeaders = () => ({ 'Authorization': 'Bearer ' + STS_API_KEY, 'Content-Type': 'text/plain;charset=utf-8' });
   let _sph = "";
   Object.defineProperty(window, 'systemPinHash', {
       get() { return _sph; },
@@ -624,7 +631,7 @@
       
       triggerAutoSaveIndicator("⏳ Saving to Cloud...");
       fetch(WEB_APP_URL, {
-          method: 'POST', headers: { "Content-Type": "text/plain;charset=utf-8" },
+          method: 'POST', headers: authHeaders(),
           body: JSON.stringify({ action: "UPDATE_PIN", pin: hashed })
       }).then(r => r.json()).then(d => {
           if(d.status === 'success') {
@@ -648,7 +655,7 @@
       if(!validateEmails(emails)) return alert("Invalid email format.");
       document.getElementById('btn-req-otp').innerText = "SENDING...";
       fetch(WEB_APP_URL, {
-          method: "POST", headers: {"Content-Type": "text/plain;charset=utf-8"},
+          method: "POST", headers: authHeaders(),
           body: JSON.stringify({ action: "REQUEST_OTP", emails: emails }) 
       }).then(r=>r.json()).then(d => {
           if(d.status === 'success') {
@@ -672,7 +679,7 @@
       document.getElementById('btn-verify-otp').innerText = "VERIFYING...";
       
       fetch(WEB_APP_URL, {
-          method: "POST", headers: {"Content-Type": "text/plain;charset=utf-8"},
+          method: "POST", headers: authHeaders(),
           body: JSON.stringify({ action: "VERIFY_OTP", emails: emails, otp: otp, frequency: freq })
       }).then(r=>r.json()).then(d => {
           if(d.status === 'success') {
@@ -684,7 +691,7 @@
                   
                   // Push the exact schedule to Cloudflare KV for the Cron Job to use
                   fetch(WEB_APP_URL, {
-                      method: "POST", headers: {"Content-Type": "text/plain;charset=utf-8"},
+                      method: "POST", headers: authHeaders(),
                       body: JSON.stringify({ 
                           action: "SAVE_EMAIL_CONFIG", 
                           config: { email: emails, freq: freq, day: parseInt(dayVal), date: parseInt(dateVal) } 
@@ -843,30 +850,34 @@
       'CASH': { 'FAMILY': 'c_outFamily', 'SUGAR': 'c_outSugar', 'SHOP GOODS': 'c_outShop', 'TEA': 'c_outTea', 'MILK': 'c_outMilk', 'OTHER': 'c_outOther', 'BANK TRANSFER': 'c_outBank', 'OTHER INCOME': 'c_otherIncome' },
       'BANK': { 'FAMILY': 'b_outFamily', 'SUGAR': 'b_outSugar', 'SHOP GOODS': 'b_outShop', 'TEA': 'b_outTea', 'MILK': 'b_outMilk', 'OTHER': 'b_outOther', 'BANK TO CASH TRANSFER': 'b_outBank', 'OTHER INCOME': 'b_otherIncome', 'CAPITAL INVESTMENT': 'b_capitalInv', 'CAPITAL RETURNED': 'b_capitalRet' }
   };
-  
-  function toggleInputLock(isLocked) {
-      const loadingBanner = document.getElementById('inputLoading');
-      if (loadingBanner) loadingBanner.style.display = isLocked ? 'block' : 'none';
-      
-      document.querySelectorAll('.calc-input').forEach(i => i.disabled = isLocked);
-      
-      // FIXED: Strictly lock the date input and settings button while fetching data
+  // সার্ভার থেকে পিন না আসা পর্যন্ত বাটন ও ডেট ডিজেবল রাখার ফাংশন
+ // ১. নতুন ফাংশন: যেটা শুধু সেটিংস আর ডেট বাটন পাহারা দেবে
+  function lockProtectedControls(disable) {
       const dateDisp = document.getElementById('disp-dateField');
       if(dateDisp) {
-          if(isLocked) dateDisp.classList.add('locked');
+          if(disable) dateDisp.classList.add('locked');
           else dateDisp.classList.remove('locked');
       }
       
       const settingsBtn = document.querySelector('.btn-top-settings');
       if (settingsBtn) {
-          settingsBtn.style.pointerEvents = isLocked ? 'none' : 'auto';
-          settingsBtn.style.opacity = isLocked ? '0.5' : '1';
+          settingsBtn.style.pointerEvents = disable ? 'none' : 'auto';
+          settingsBtn.style.opacity = disable ? '0.4' : '1';
       }
       
       const dateWrap = document.querySelector('.date-group .date-overlay-wrapper');
       if (dateWrap) {
-          dateWrap.style.pointerEvents = isLocked ? 'none' : 'auto';
+          dateWrap.style.pointerEvents = disable ? 'none' : 'auto';
       }
+  }
+
+  // ২. পুরনো ফাংশন: যেখান থেকে বাটনের লজিক মুছে ফেলা হয়েছে
+  function toggleInputLock(isLocked) {
+      const loadingBanner = document.getElementById('inputLoading');
+      if (loadingBanner) loadingBanner.style.display = isLocked ? 'block' : 'none';
+      
+      // এটি এখন শুধু টাকার ঘরগুলো কন্ট্রোল করবে
+      document.querySelectorAll('.calc-input').forEach(i => i.disabled = isLocked);
   }
 
   function updateDispDate(el) {
@@ -887,7 +898,14 @@
           if (r.account === 'BANK' && r.particulars === 'CLOSING BANK BALANCE' && bankBal === 0) bankBal = amt;
           if (r.account === 'CASH' && (r.particulars === 'CLOSING FLOAT' || r.particulars === 'RESERVE IN') && floatBal === 0) floatBal = amt;
       }
-      let denomRow = appData.stsj.slice().reverse().find(r => (r.denomDate === targetDate || (r.date === targetDate && r.particulars === "CLOSING CASH")) && ['note500', 'note200', 'note100', 'note50', 'note20', 'note10', 'coin20', 'coin10', 'coin5', 'coin2', 'coin1'].some(k => r[k] !== "" && r[k] !== undefined && r[k] !== null));
+      let denomRow = null;
+      for (let _i = appData.stsj.length - 1; _i >= 0; _i--) {
+          let _r = appData.stsj[_i];
+          if ((_r.denomDate === targetDate || (_r.date === targetDate && _r.particulars === "CLOSING CASH")) && ['note500', 'note200', 'note100', 'note50', 'note20', 'note10', 'coin20', 'coin10', 'coin5', 'coin2', 'coin1'].some(k => _r[k] !== "" && _r[k] !== undefined && _r[k] !== null)) {
+              denomRow = _r;
+              break;
+          }
+      }
       if (denomRow) { ['note10', 'note20', 'note50', 'note100', 'note200', 'note500', 'coin1', 'coin2', 'coin5', 'coin10', 'coin20'].forEach(denom => { if (denomRow[denom] !== undefined && denomRow[denom] !== "") loadedPastExpenses[denom] = denomRow[denom]; }); }
       loadedPastExpenses['bankInAmount'] = bankBal; loadedPastExpenses['reserveIn'] = floatBal;
   }
@@ -1005,10 +1023,11 @@
     // Record exactly when this fetch started
     const fetchStartTime = Date.now(); 
     
-    fetch(WEB_APP_URL).then(res => res.json()).then(data => {
+    fetch(WEB_APP_URL, { headers: { 'Authorization': 'Bearer ' + STS_API_KEY } }).then(res => res.json()).then(data => {
         if(data.status === "success" && Array.isArray(data.stsj)) { 
           try {
             systemPinHash = data.pinHash || "";
+            lockProtectedControls(false); // <-- এই নতুন লাইনটা বসাবেন (পিন এসে গেছে, বাটন আনলক!)
             // ইমেইল কনফিগারেশন পিনের মতোই সার্ভার থেকে সিঙ্ক করে নেবে
             if(data.emailConfig && data.emailConfig.emails) {
                 localStorage.setItem('sankar_email_config', JSON.stringify(data.emailConfig));
@@ -1048,7 +1067,9 @@
             } else { checkAutoEmail(); }
           } catch(err) { console.error(err); } toggleInputLock(false);
         }
-      }).catch(e => { toggleInputLock(false); });
+      }).catch(e => { toggleInputLock(false); 
+                     lockProtectedControls(true); // <-- নেট না থাকলে বাটন লক!
+      });
   }
 
   function processSyncQueue() {
@@ -1060,7 +1081,7 @@
     let entriesToSend = queue[0];
     
     function attemptSend(retries = 3) {
-      fetch(WEB_APP_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(entriesToSend) })
+      fetch(WEB_APP_URL, { method: "POST", headers: authHeaders(), body: JSON.stringify(entriesToSend) })
       .then(response => response.json())
       .then(data => {
         if(data.status === "success") { 
@@ -1094,7 +1115,14 @@
     let prevDate = null; for (let i = sortedAppDates.length - 1; i >= 0; i--) { if (sortedAppDates[i] < currentIsoDate) { prevDate = sortedAppDates[i]; break; } }
     if (!prevDate) return;
     let tempPast = {}; let rows = appData.byDate[prevDate] || [];
-    let denomRow = appData.stsj.slice().reverse().find(r => (r.denomDate === prevDate || (r.date === prevDate && r.particulars === "CLOSING CASH")) && ['note500','note200','note100','note50','note20','note10','coin20','coin10','coin5','coin2','coin1'].some(k => r[k] !== "" && r[k] !== undefined && r[k] !== null));
+    let denomRow = null;
+    for (let _i = appData.stsj.length - 1; _i >= 0; _i--) {
+        let _r = appData.stsj[_i];
+        if ((_r.denomDate === prevDate || (_r.date === prevDate && _r.particulars === "CLOSING CASH")) && ['note500','note200','note100','note50','note20','note10','coin20','coin10','coin5','coin2','coin1'].some(k => _r[k] !== "" && _r[k] !== undefined && _r[k] !== null)) {
+            denomRow = _r;
+            break;
+        }
+    }
     if (denomRow) { ['note10','note20','note50','note100','note200','note500','coin1','coin2','coin5','coin10','coin20'].forEach(d => { if (denomRow[d] !== undefined && denomRow[d] !== "") tempPast[d] = denomRow[d]; }); }
     for (let i = rows.length - 1; i >= 0; i--) {
       let r = rows[i]; let amt = parseFloat(r.amount) || 0;
@@ -1108,6 +1136,7 @@
   function processInputSave() { clearTimeout(debounceSaveTimer); debounceSaveTimer = setTimeout(() => { syncDraftDataAndSave(); }, 400); }
 
   window.addEventListener('DOMContentLoaded', () => {
+    lockProtectedControls(true); // <-- একদম শুরুতে বাটন দুটো কড়াভাবে লক করে দেওয়া হলো
     document.getElementById('dateField').value = currentIsoDate; updateDispDate(document.getElementById('dateField'));
     let cachedStr = localStorage.getItem('sankar_appData'); if (cachedStr && cachedStr.length > 10) { try { processIncomingData(JSON.parse(cachedStr)); toggleInputLock(false); } catch(e) { toggleInputLock(true); } } else { toggleInputLock(true); }
     buildLoadedPastExpenses(currentIsoDate); applyYesterdayClosingAsToday();
@@ -1228,7 +1257,7 @@
     let cachedStr = localStorage.getItem('sankar_appData');
     if (cachedStr) { try { processIncomingData(JSON.parse(cachedStr)); initDashDates(); renderSalesDashboard(); renderBalancesDashboard(); renderStatsDashboard(); contentUI.style.display = 'block'; return; } catch(e) {} } 
     const loadingUI = document.getElementById('dashLoading'); loadingUI.style.display = 'block'; contentUI.style.display = 'none';
-    fetch(WEB_APP_URL).then(res => res.json()).then(data => { if(data.status === "success") { processIncomingData(data.stsj); loadingUI.style.display = 'none'; contentUI.style.display = 'block'; initDashDates(); renderSalesDashboard(); renderBalancesDashboard(); renderStatsDashboard(); } }).catch(err => { loadingUI.innerText = "⚠️ Error loading data."; loadingUI.style.color = "#F44336"; loadingUI.style.borderColor = "#F44336"; });
+    fetch(WEB_APP_URL, { headers: { 'Authorization': 'Bearer ' + STS_API_KEY } }).then(res => res.json()).then(data => { if(data.status === "success") { processIncomingData(data.stsj); loadingUI.style.display = 'none'; contentUI.style.display = 'block'; initDashDates(); renderSalesDashboard(); renderBalancesDashboard(); renderStatsDashboard(); } }).catch(err => { loadingUI.innerText = "⚠️ Error loading data."; loadingUI.style.color = "#F44336"; loadingUI.style.borderColor = "#F44336"; });
   }
 
   function setPlMode(mode) {
@@ -1247,8 +1276,8 @@
     let allTotal = stats.cashExp + stats.bankExp; let html = "";
     if(allTotal === 0) { html = `<div style="text-align:center; background:#2a2a2a; border-radius:8px; padding:20px; color:#888; font-size:13px; font-style:italic;">No expenses logged for this period.</div>`; } else {
        html += `<div style="background:#2a2a2a; border-radius:8px; padding:15px;">`;
-       if(stats.cExpList.length > 0) { html += `<h4 style="color:#FF9800; font-size:12px; margin:0 0 10px 0;">CASH EXPENSES</h4>`; stats.cExpList.forEach(ex => { html += `<div class="exp-row"><span>${ex.particulars}</span><strong>₹${fmtINR(ex.amount)}</strong></div>`; }); html += `<div class="exp-subtotal"><span>TOTAL CASH EXPENSES</span><span>₹${fmtINR(stats.cashExp)}</span></div>`; }
-       if(stats.bExpList.length > 0) { html += `<h4 style="color:#2196F3; font-size:12px; margin:10px 0 10px 0;">BANK EXPENSES</h4>`; stats.bExpList.forEach(ex => { html += `<div class="exp-row"><span>${ex.particulars}</span><strong>₹${fmtINR(ex.amount)}</strong></div>`; }); html += `<div class="exp-subtotal bank"><span>TOTAL BANK EXPENSES</span><span>₹${fmtINR(stats.bankExp)}</span></div>`; }
+       if(stats.cExpList.length > 0) { html += `<h4 style="color:#FF9800; font-size:12px; margin:0 0 10px 0;">CASH EXPENSES</h4>`; stats.cExpList.forEach(ex => { html += `<div class="exp-row"><span>${escHTML(ex.particulars)}</span><strong>₹${escHTML(fmtINR(ex.amount))}</strong></div>`; }); html += `<div class="exp-subtotal"><span>TOTAL CASH EXPENSES</span><span>₹${fmtINR(stats.cashExp)}</span></div>`; }
+       if(stats.bExpList.length > 0) { html += `<h4 style="color:#2196F3; font-size:12px; margin:10px 0 10px 0;">BANK EXPENSES</h4>`; stats.bExpList.forEach(ex => { html += `<div class="exp-row"><span>${escHTML(ex.particulars)}</span><strong>₹${escHTML(fmtINR(ex.amount))}</strong></div>`; }); html += `<div class="exp-subtotal bank"><span>TOTAL BANK EXPENSES</span><span>₹${fmtINR(stats.bankExp)}</span></div>`; }
        html += `<div class="exp-grand"><span>OVERALL TOTAL EXPENSES</span><span>₹${fmtINR(allTotal)}</span></div></div>`;
     }
     document.getElementById('d-expenses-container').innerHTML = html;
@@ -1716,7 +1745,7 @@ const imgQR = qrCanvas ? qrCanvas.toDataURL('image/png', 0.8) : "";
               reader.onloadend = function() {
                   const base64Raw = reader.result.split(',')[1];
                   fetch(WEB_APP_URL, {
-                      method: 'POST', headers: { "Content-Type": "text/plain;charset=utf-8" },
+                      method: 'POST', headers: authHeaders(),
                       body: JSON.stringify({ action: "SEND_ON_DEMAND_STATEMENT", emails: targetEmails, pdfData: base64Raw, date: `${sIso} to ${eIso}` })
                   }).then(r => r.json()).then(resData => {
                       if(resData.status === 'success') {
@@ -1805,23 +1834,22 @@ function requestEmailStatement() {
     let targetEmails = conf.emails;
     
     if (!targetEmails) {
-        targetEmails = prompt("No default email saved.\n\nEnter email address(es) to send this PDF:");
+        // যদি সেটিংসে কোনো ইমেইল না থাকে
+        targetEmails = prompt("No default email saved.\n\nEnter email address(es) to send this PDF ONE TIME:");
         if (!targetEmails) return;
         if (!validateEmails(targetEmails)) return alert("Invalid email format.");
         
-        localStorage.setItem('sankar_email_config', JSON.stringify({ emails: targetEmails, freq: 'DAILY' }));
-        alert("Email saved to configuration!");
+        alert("Sending one-time email. To set a daily/weekly schedule, please go to Settings.");
     } else {
-        let confirmSend = confirm("Send PDF statement to saved email?\n" + targetEmails + "\n\n(Click Cancel to type a different email)");
+        // যদি সেটিংসে ইমেইল থাকে
+        let confirmSend = confirm("Send PDF statement to saved email?\n" + targetEmails + "\n\n(Click Cancel to type a different one-time email)");
+        
         if (!confirmSend) {
-            let newEmails = prompt("Enter new email address(es):", targetEmails);
+            let newEmails = prompt("Enter new ONE-TIME email address(es):", targetEmails);
             if (!newEmails) return;
             if (!validateEmails(newEmails)) return alert("Invalid email format.");
-            targetEmails = newEmails;
-            
-            if (confirm("Update saved email in settings to this new one?")) {
-                localStorage.setItem('sankar_email_config', JSON.stringify({ emails: targetEmails, freq: conf.freq || 'DAILY' }));
-            }
+            targetEmails = newEmails; 
+            // আগের কোডে এখানে সেটিংসে সেভ করার অপশন ছিল, যেটা মুছে দেওয়া হয়েছে!
         }
     }
     
